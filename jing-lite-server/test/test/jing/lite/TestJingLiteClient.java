@@ -1,7 +1,6 @@
 package test.jing.lite;
 
 import java.io.File;
-import java.util.List;
 
 import ananas.jing.lite.core.JingEndpointFactory;
 import ananas.jing.lite.core.JingRepo;
@@ -17,7 +16,7 @@ public class TestJingLiteClient {
 	}
 
 	public static void main(String[] arg) {
-		File repo = new File("/home/xukun/test/jing-lite/repo");
+		File repo = new File("/home/xukun/test/jing-lite/.repo");
 		String url = "http://localhost:8080/jing-lite-server/ObjectHub";
 		JingEndpointFactory factory = JingEndpointFactory.Agent.getInstance();
 		JingClient client = factory.newClient(repo, url);
@@ -29,7 +28,8 @@ public class TestJingLiteClient {
 
 	private void run() {
 
-		final JingRepo repo = this._client.getRepo();
+		final JingClient client = this._client;
+		final JingRepo repo = client.getRepo();
 
 		File obj_dir = repo.getFile(JingRepo.dir_objects);
 		if (!obj_dir.exists()) {
@@ -43,6 +43,9 @@ public class TestJingLiteClient {
 				if (!file.isDirectory()) {
 					XGitObject go = repo.getApiL().addRawObject("blob", file);
 					System.out.println("added object " + go);
+
+					client.push(go);
+
 				}
 		}
 

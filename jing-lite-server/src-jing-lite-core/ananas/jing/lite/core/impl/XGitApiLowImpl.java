@@ -3,9 +3,11 @@ package ananas.jing.lite.core.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
 
 import ananas.jing.lite.core.JingRepo;
 import ananas.jing.lite.core.XGitObject;
@@ -13,6 +15,7 @@ import ananas.jing.lite.core.util.DoubleOutputStream;
 import ananas.jing.lite.core.util.Sha1OutputStream;
 import ananas.jing.lite.core.util.StreamPump;
 import ananas.jing.lite.core.xgit.XGitApiL;
+import ananas.jing.lite.core.xgit.XGitCheckout;
 import ananas.jing.lite.core.xgit.XGitRepo;
 
 public class XGitApiLowImpl implements XGitApiL {
@@ -66,6 +69,7 @@ public class XGitApiLowImpl implements XGitApiL {
 			(new StreamPump(in, out2)).run();
 
 			out2.flush();
+			out2.close();
 			sha1 = sha1_out.getSha1();
 
 		} catch (Exception e) {
@@ -114,5 +118,28 @@ public class XGitApiLowImpl implements XGitApiL {
 		String name = "file_" + this.hashCode() + "-" + index + "_" + now
 				+ ".tmp";
 		return new File(temp_dir, name);
+	}
+
+	@Override
+	public XGitCheckout checkout(XGitObject go) throws IOException {
+
+		File file = go.getFile();
+		if (file.exists())
+			if (!file.isDirectory()) {
+
+				InputStream in = new FileInputStream(file);
+				InputStream in2 = new InflaterInputStream(in);
+				StringBuilder sb = new StringBuilder();
+				for (int b = in2.read(); b > 0; b = in2.read()) {
+					sb.append((char) b);
+				}
+				String s = sb.toString();
+				int index = s.indexOf(' ');
+				String type = s.substring(0, index);
+				long length = Long.parseLong(s.substring(index + 1));
+				return new XGitCheckoutImpl(type, length, in2);
+
+			}
+		return null;
 	}
 }

@@ -1,6 +1,7 @@
 package ananas.jing.lite.core.xgit;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -15,5 +16,7 @@ public interface XGitApiL {
 	XGitObject addRawObject(String type, File file);
 
 	File newTempFile();
+
+	XGitCheckout checkout(XGitObject go) throws IOException;
 
 }

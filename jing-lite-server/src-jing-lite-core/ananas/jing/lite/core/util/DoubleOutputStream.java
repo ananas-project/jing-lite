@@ -24,4 +24,11 @@ public class DoubleOutputStream extends OutputStream {
 		this._out1.flush();
 		this._out2.flush();
 	}
+
+	@Override
+	public void close() throws IOException {
+		this._out1.close();
+		this._out2.close();
+	}
+
 }
