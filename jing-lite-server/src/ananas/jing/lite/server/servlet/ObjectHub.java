@@ -1,6 +1,8 @@
 package ananas.jing.lite.server.servlet;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -9,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import ananas.jing.lite.core.Const;
 import ananas.jing.lite.core.JingRepo;
+import ananas.jing.lite.core.XGitObject;
 import ananas.jing.lite.core.server.JingServer;
 import ananas.jing.lite.core.xgit.XGitApiL;
 import ananas.jing.lite.server.DefaultServerAgent;
@@ -58,12 +61,32 @@ public class ObjectHub extends HttpServlet {
 
 		if (method == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
 		} else if (method.equals(Const.XGITP.method_get)) {
-			;
+			JingRepo repo = this._server.getRepo();
+			XGitObject go = repo.getXGitObject(sha1);
+			if (go.exists()) {
+				OutputStream out = response.getOutputStream();
+				XGitApiL lapi = repo.getApiL();
+				lapi.getZippedObject(go, out);
+			} else {
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			}
+
 		} else if (method.equals(Const.XGITP.method_put)) {
 			JingRepo repo = this._server.getRepo();
-			XGitApiL lapi = repo.getApiL();
-			 ;
+			XGitObject go = repo.getXGitObject(sha1);
+			if (go.exists()) {
+				response.setStatus(HttpServletResponse.SC_OK);
+			} else {
+				InputStream in = request.getInputStream();
+				XGitApiL lapi = repo.getApiL();
+				if (lapi.addZippedObject(go, in)) {
+					response.setStatus(HttpServletResponse.SC_OK);
+				} else {
+					response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+				}
+			}
 		} else if (method.equals(Const.XGITP.method_head)) {
 			;
 		} else {
