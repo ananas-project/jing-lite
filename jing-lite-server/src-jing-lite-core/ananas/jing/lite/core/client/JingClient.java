@@ -1,5 +1,7 @@
 package ananas.jing.lite.core.client;
 
-public interface JingClient {
+import ananas.jing.lite.core.JingEndpoint;
+
+public interface JingClient extends JingEndpoint {
 
 }

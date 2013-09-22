@@ -15,8 +15,7 @@ public class JingEndpointFactoryImpl implements JingEndpointFactory {
 
 	@Override
 	public JingClient newClient(File repo, String url) {
-		// TODO Auto-generated method stub
-		return null;
+		return new JingClientImpl(repo, url);
 	}
 
 }

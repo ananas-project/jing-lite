@@ -1,5 +1,6 @@
 package ananas.jing.lite.core.xgit;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -10,5 +11,9 @@ public interface XGitApiL {
 	boolean addZippedObject(XGitObject go, InputStream in);
 
 	boolean getZippedObject(XGitObject go, OutputStream out);
+
+	XGitObject addRawObject(String type, File file);
+
+	File newTempFile();
 
 }

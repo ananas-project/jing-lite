@@ -2,7 +2,9 @@ package ananas.jing.lite.core.impl;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import ananas.jing.lite.core.fileman.FileManager;
@@ -49,5 +51,11 @@ public class DefaultFileManager implements FileManager {
 			this._mapper = map;
 		}
 		return map;
+	}
+
+	@Override
+	public List<File> listFiles() {
+		Map<String, File> map = this.__getMapper();
+		return new ArrayList<File>(map.values());
 	}
 }
