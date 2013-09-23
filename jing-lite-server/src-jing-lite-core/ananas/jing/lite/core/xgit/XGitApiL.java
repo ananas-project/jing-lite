@@ -5,18 +5,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import ananas.jing.lite.core.XGitObject;
+import ananas.jing.lite.core.LocalXGitObject;
 
 public interface XGitApiL {
 
-	boolean addZippedObject(XGitObject go, InputStream in);
+	boolean addZippedObject(LocalXGitObject go, InputStream in);
 
-	boolean getZippedObject(XGitObject go, OutputStream out);
+	boolean getZippedObject(LocalXGitObject go, OutputStream out);
 
-	XGitObject addRawObject(String type, File file);
+	LocalXGitObject addRawObject(String type, File file);
 
 	File newTempFile();
 
-	XGitCheckout checkout(XGitObject go) throws IOException;
+	XGitCheckout checkout(LocalXGitObject go) throws IOException;
 
 }

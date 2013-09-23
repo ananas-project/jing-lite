@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import ananas.jing.lite.core.Const;
 import ananas.jing.lite.core.JingRepo;
-import ananas.jing.lite.core.XGitObject;
+import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.server.JingServer;
 import ananas.jing.lite.core.xgit.XGitApiL;
 import ananas.jing.lite.server.DefaultServerAgent;
@@ -64,7 +64,7 @@ public class ObjectHub extends HttpServlet {
 
 		} else if (method.equals(Const.XGITP.method_get)) {
 			JingRepo repo = this._server.getRepo();
-			XGitObject go = repo.getXGitObject(sha1);
+			LocalXGitObject go = repo.getXGitObject(sha1);
 			if (go.exists()) {
 				OutputStream out = response.getOutputStream();
 				XGitApiL lapi = repo.getApiL();
@@ -75,7 +75,7 @@ public class ObjectHub extends HttpServlet {
 
 		} else if (method.equals(Const.XGITP.method_put)) {
 			JingRepo repo = this._server.getRepo();
-			XGitObject go = repo.getXGitObject(sha1);
+			LocalXGitObject go = repo.getXGitObject(sha1);
 			if (go.exists()) {
 				response.setStatus(HttpServletResponse.SC_OK);
 			} else {

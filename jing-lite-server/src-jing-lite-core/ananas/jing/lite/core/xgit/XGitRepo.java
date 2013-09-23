@@ -1,6 +1,6 @@
 package ananas.jing.lite.core.xgit;
 
-import ananas.jing.lite.core.XGitObject;
+import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.fileman.FileManager;
 
 public interface XGitRepo extends FileManager {
@@ -10,7 +10,7 @@ public interface XGitRepo extends FileManager {
 	String dir_refs = "refs";
 	String dir_branches = "branches";
 
-	XGitObject getXGitObject(String sha1);
+	LocalXGitObject getXGitObject(String sha1);
 
 	XGitApiL getApiL();
 

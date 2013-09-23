@@ -2,7 +2,7 @@ package ananas.jing.lite.core.impl;
 
 import java.io.File;
 
-import ananas.jing.lite.core.XGitObject;
+import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.xgit.XGitApiH;
 import ananas.jing.lite.core.xgit.XGitApiL;
 import ananas.jing.lite.core.xgit.XGitRepo;
@@ -37,7 +37,7 @@ public class DefaultXGitRepo extends DefaultFileManager implements XGitRepo {
 	}
 
 	@Override
-	public XGitObject getXGitObject(String sha1) {
+	public LocalXGitObject getXGitObject(String sha1) {
 		XGitRepo repo = this;
 		return new XGitObjectImpl(repo, sha1);
 	}

@@ -4,7 +4,8 @@ import java.io.File;
 
 import ananas.jing.lite.core.JingEndpointFactory;
 import ananas.jing.lite.core.JingRepo;
-import ananas.jing.lite.core.XGitObject;
+import ananas.jing.lite.core.LocalXGitObject;
+import ananas.jing.lite.core.RemoteXGitObject;
 import ananas.jing.lite.core.client.JingClient;
 
 public class TestJingLiteClient {
@@ -41,10 +42,13 @@ public class TestJingLiteClient {
 		for (File file : list) {
 			if (file.exists())
 				if (!file.isDirectory()) {
-					XGitObject go = repo.getApiL().addRawObject("blob", file);
+					LocalXGitObject go = repo.getApiL().addRawObject("blob",
+							file);
 					System.out.println("added object " + go);
 
-					client.push(go);
+					RemoteXGitObject rgo = client.push(go);
+
+					client.pull(rgo.getLongURL());
 
 				}
 		}

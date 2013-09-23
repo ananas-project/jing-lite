@@ -10,7 +10,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import ananas.jing.lite.core.JingRepo;
-import ananas.jing.lite.core.XGitObject;
+import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.util.DoubleOutputStream;
 import ananas.jing.lite.core.util.Sha1OutputStream;
 import ananas.jing.lite.core.util.StreamPump;
@@ -28,19 +28,34 @@ public class XGitApiLowImpl implements XGitApiL {
 	}
 
 	@Override
-	public boolean addZippedObject(XGitObject go, InputStream in) {
+	public boolean addZippedObject(LocalXGitObject go, InputStream in) {
+		try {
+			File file = go.getFile();
+			if (file.exists()) {
+				return true;
+			}
+			File parent = file.getParentFile();
+			if (!parent.exists()) {
+				parent.mkdirs();
+			}
+			OutputStream out = new FileOutputStream(file);
+			(new StreamPump(in, out)).run();
+			out.close();
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	@Override
+	public boolean getZippedObject(LocalXGitObject go, OutputStream out) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean getZippedObject(XGitObject go, OutputStream out) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public XGitObject addRawObject(String type, File file) {
+	public LocalXGitObject addRawObject(String type, File file) {
 
 		InputStream in = null;
 		OutputStream out = null;
@@ -94,7 +109,7 @@ public class XGitApiLowImpl implements XGitApiL {
 			tmpOutFile.delete();
 			return null;
 		} else {
-			XGitObject go = repo.getXGitObject(sha1);
+			LocalXGitObject go = repo.getXGitObject(sha1);
 			if (go.exists()) {
 				tmpOutFile.delete();
 			} else {
@@ -121,7 +136,7 @@ public class XGitApiLowImpl implements XGitApiL {
 	}
 
 	@Override
-	public XGitCheckout checkout(XGitObject go) throws IOException {
+	public XGitCheckout checkout(LocalXGitObject go) throws IOException {
 
 		File file = go.getFile();
 		if (file.exists())

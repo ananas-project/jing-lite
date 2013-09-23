@@ -1,12 +1,8 @@
 package ananas.jing.lite.core;
 
-import java.io.File;
-
-import ananas.jing.lite.core.xgit.XGitRepo;
-
 public interface XGitObject {
 
-	File getFile();
+	boolean exists();
 
 	String getSha1();
 
@@ -14,7 +10,4 @@ public interface XGitObject {
 
 	long getLength();
 
-	boolean exists();
-
-	XGitRepo getRepo();
 }

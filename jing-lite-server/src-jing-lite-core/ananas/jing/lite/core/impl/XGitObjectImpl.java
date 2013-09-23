@@ -3,11 +3,11 @@ package ananas.jing.lite.core.impl;
 import java.io.File;
 import java.io.IOException;
 
-import ananas.jing.lite.core.XGitObject;
+import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.xgit.XGitCheckout;
 import ananas.jing.lite.core.xgit.XGitRepo;
 
-public class XGitObjectImpl implements XGitObject {
+public class XGitObjectImpl implements LocalXGitObject {
 
 	private final XGitRepo _repo;
 	private final String _sha1;
@@ -87,7 +87,7 @@ public class XGitObjectImpl implements XGitObject {
 			return this._type;
 		}
 
-		public void load(XGitObject go) throws IOException {
+		public void load(LocalXGitObject go) throws IOException {
 			XGitCheckout co = go.getRepo().getApiL().checkout(go);
 			this._length = co.getLength();
 			this._type = co.getType();
