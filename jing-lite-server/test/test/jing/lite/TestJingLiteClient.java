@@ -48,6 +48,7 @@ public class TestJingLiteClient {
 
 					RemoteXGitObject rgo = client.push(go);
 
+					client.head(rgo.getLongURL());
 					client.pull(rgo.getLongURL());
 
 				}
