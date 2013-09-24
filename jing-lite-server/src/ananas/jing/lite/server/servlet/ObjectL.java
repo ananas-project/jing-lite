@@ -63,7 +63,7 @@ public class ObjectL extends HttpServlet {
 			HttpServletResponse response) {
 
 		String uri = request.getRequestURI();
-		System.out.print(" head of long-object-url : " + uri);
+		// System.out.print(" head of long-object-url : " + uri);
 		int index = uri.lastIndexOf('/');
 		String sha1 = uri.substring(index + 1);
 		LocalXGitObject go = this._server.getRepo().getXGitObject(sha1);

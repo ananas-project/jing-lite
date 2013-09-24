@@ -64,7 +64,9 @@ public class ObjectHub extends HttpServlet {
 			return;
 		}
 
-		System.out.println("XGITP:" + method + " " + sha1);
+		String sp = "     ";
+		String str_method = (method + sp).substring(0, sp.length());
+		System.out.println("XGITP: " + str_method + " " + sha1);
 
 		if (method == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

@@ -1,6 +1,10 @@
 package test.jing.lite;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 import ananas.jing.lite.core.JingEndpointFactory;
@@ -8,6 +12,9 @@ import ananas.jing.lite.core.JingRepo;
 import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.RemoteXGitObject;
 import ananas.jing.lite.core.client.JingClient;
+import ananas.jing.lite.core.util.StreamPump;
+import ananas.jing.lite.core.xgit.XGitCheckout;
+import ananas.jing.lite.core.xgit.XGitRepo;
 
 public class TestJingLiteClient {
 
@@ -63,7 +70,30 @@ public class TestJingLiteClient {
 
 					this.__print(rgo);
 
-					this._client2.pull(rgo.getLongURL());
+					JingClient client2 = this._client2;
+					LocalXGitObject lgo2 = client2.pull(rgo.getLongURL());
+
+					try {
+						XGitCheckout co = client2.getRepo().getApiL()
+								.checkout(lgo2);
+
+						File works2 = client2.getRepo().getFile(
+								XGitRepo.dir_workspace);
+
+						String sha1 = lgo2.getSha1();
+						OutputStream out = new FileOutputStream(new File(
+								works2, sha1));
+
+						InputStream in = co.getInputStream();
+						StreamPump pump = (new StreamPump(in, out));
+						pump.run();
+
+						out.close();
+						co.close();
+
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 
 				}
 		}

@@ -12,7 +12,7 @@ public class ServletUtil {
 			HttpServletResponse response, LocalXGitObject go) {
 
 		final String servlet_path = request.getServletPath();
-		System.out.println("servlet_path = " + servlet_path);
+		// System.out.println("servlet_path = " + servlet_path);
 		final String full_url = request.getRequestURL().toString();
 		int index;
 		index = full_url.indexOf(servlet_path);
@@ -20,7 +20,7 @@ public class ServletUtil {
 				index + servlet_path.length());
 		index = servlet_url.lastIndexOf('/');
 		String base_url = full_url.substring(0, index + 1);
-		System.out.println("base_url = " + base_url);
+		// System.out.println("base_url = " + base_url);
 
 		final String sha1 = go.getSha1() + "";
 
