@@ -1,6 +1,7 @@
 package test.jing.lite;
 
 import java.io.File;
+import java.io.PrintStream;
 
 import ananas.jing.lite.core.JingEndpointFactory;
 import ananas.jing.lite.core.JingRepo;
@@ -11,19 +12,25 @@ import ananas.jing.lite.core.client.JingClient;
 public class TestJingLiteClient {
 
 	private final JingClient _client;
+	private final JingClient _client2;
 
-	public TestJingLiteClient(JingClient client) {
-		this._client = client;
+	public TestJingLiteClient(JingClient client1, JingClient client2) {
+		this._client = client1;
+		this._client2 = client2;
 	}
 
 	public static void main(String[] arg) {
-		File repo = new File("/home/xukun/test/jing-lite/.repo");
-		String url = "http://localhost:8080/jing-lite-server/ObjectHub";
-		JingEndpointFactory factory = JingEndpointFactory.Agent.getInstance();
-		JingClient client = factory.newClient(repo, url);
-		System.out.println("" + client);
 
-		TestJingLiteClient test = new TestJingLiteClient(client);
+		File repo1 = new File("/home/xukun/test/jing-lite/repo1/.xgit");
+		File repo2 = new File("/home/xukun/test/jing-lite/repo2/.xgit");
+		String url = "http://localhost:18080/jing-lite-server/ObjectHub";
+		JingEndpointFactory factory = JingEndpointFactory.Agent.getInstance();
+		JingClient client1 = factory.newClient(repo1, url);
+		JingClient client2 = factory.newClient(repo2, url);
+		System.out.println("" + client1);
+		System.out.println("" + client2);
+
+		TestJingLiteClient test = new TestJingLiteClient(client1, client2);
 		test.run();
 	}
 
@@ -42,17 +49,37 @@ public class TestJingLiteClient {
 		for (File file : list) {
 			if (file.exists())
 				if (!file.isDirectory()) {
+
+					System.out.println("addFileAsObject : " + file);
 					LocalXGitObject go = repo.getApiL().addRawObject("blob",
 							file);
 					System.out.println("added object " + go);
 
 					RemoteXGitObject rgo = client.push(go);
 
-					client.head(rgo.getLongURL());
-					client.pull(rgo.getLongURL());
+					// this.__print(rgo);
+
+					rgo = client.head(rgo.getLongURL());
+
+					this.__print(rgo);
+
+					this._client2.pull(rgo.getLongURL());
 
 				}
 		}
+
+	}
+
+	private void __print(RemoteXGitObject rgo) {
+
+		PrintStream out = System.out;
+		out.println(rgo + "");
+		out.println("    ep     = " + rgo.getEndpointURL());
+		out.println("    sha1   = " + rgo.getSha1());
+		out.println("    type   = " + rgo.getType());
+		out.println("    length = " + rgo.getLength());
+		out.println("    url-l  = " + rgo.getLongURL());
+		out.println("    url-s  = " + rgo.getShortURL());
 
 	}
 

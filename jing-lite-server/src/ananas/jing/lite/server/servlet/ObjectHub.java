@@ -59,38 +59,84 @@ public class ObjectHub extends HttpServlet {
 		String method = this.__getProperty(request, Const.XGITP.method);
 		String sha1 = this.__getProperty(request, Const.XGITP.object_sha1);
 
+		if (sha1 == null) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+
+		System.out.println("XGITP:" + method + " " + sha1);
+
 		if (method == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
 		} else if (method.equals(Const.XGITP.method_get)) {
-			JingRepo repo = this._server.getRepo();
-			LocalXGitObject go = repo.getXGitObject(sha1);
-			if (go.exists()) {
-				OutputStream out = response.getOutputStream();
-				XGitApiL lapi = repo.getApiL();
-				lapi.getZippedObject(go, out);
-			} else {
-				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			}
+			this.__do_xgitp_get(request, response);
 
 		} else if (method.equals(Const.XGITP.method_put)) {
-			JingRepo repo = this._server.getRepo();
-			LocalXGitObject go = repo.getXGitObject(sha1);
-			if (go.exists()) {
-				response.setStatus(HttpServletResponse.SC_OK);
-			} else {
-				InputStream in = request.getInputStream();
-				XGitApiL lapi = repo.getApiL();
-				if (lapi.addZippedObject(go, in)) {
-					response.setStatus(HttpServletResponse.SC_OK);
-				} else {
-					response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
-				}
-			}
+			this.__do_xgitp_put(request, response);
+
 		} else if (method.equals(Const.XGITP.method_head)) {
-			;
+			this.__do_xgitp_head(request, response);
+
 		} else {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		}
+
+	}
+
+	private void __do_xgitp_head(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+
+		String sha1 = this.__getProperty(request, Const.XGITP.object_sha1);
+
+		JingRepo repo = this._server.getRepo();
+		LocalXGitObject go = repo.getXGitObject(sha1);
+		if (go.exists()) {
+			ServletUtil.make_response_headers(request, response, go);
+			response.setStatus(HttpServletResponse.SC_OK);
+		} else {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		}
+
+	}
+
+	private void __do_xgitp_get(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+
+		String sha1 = this.__getProperty(request, Const.XGITP.object_sha1);
+
+		JingRepo repo = this._server.getRepo();
+		LocalXGitObject go = repo.getXGitObject(sha1);
+		if (go.exists()) {
+			ServletUtil.make_response_headers(request, response, go);
+			response.setStatus(HttpServletResponse.SC_OK);
+			OutputStream out = response.getOutputStream();
+			XGitApiL lapi = repo.getApiL();
+			lapi.getZippedObject(go, out);
+		} else {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		}
+	}
+
+	private void __do_xgitp_put(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+
+		String sha1 = this.__getProperty(request, Const.XGITP.object_sha1);
+
+		JingRepo repo = this._server.getRepo();
+		LocalXGitObject go = repo.getXGitObject(sha1);
+		if (go.exists()) {
+			ServletUtil.make_response_headers(request, response, go);
+			response.setStatus(HttpServletResponse.SC_OK);
+		} else {
+			InputStream in = request.getInputStream();
+			XGitApiL lapi = repo.getApiL();
+			if (lapi.addZippedObject(go, in)) {
+				ServletUtil.make_response_headers(request, response, go);
+				response.setStatus(HttpServletResponse.SC_OK);
+			} else {
+				response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+			}
 		}
 
 	}

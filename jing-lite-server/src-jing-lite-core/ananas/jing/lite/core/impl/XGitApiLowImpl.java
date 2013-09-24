@@ -50,8 +50,16 @@ public class XGitApiLowImpl implements XGitApiL {
 
 	@Override
 	public boolean getZippedObject(LocalXGitObject go, OutputStream out) {
-		// TODO Auto-generated method stub
-		return false;
+		try {
+			File file = go.getFile();
+			InputStream in = new FileInputStream(file);
+			(new StreamPump(in, out)).run();
+			in.close();
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	@Override

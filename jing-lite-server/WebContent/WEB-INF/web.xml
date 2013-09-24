@@ -29,4 +29,24 @@
     <servlet-name>Test</servlet-name>
     <url-pattern>/Test</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>ObjectL</display-name>
+    <servlet-name>ObjectL</servlet-name>
+    <servlet-class>ananas.jing.lite.server.servlet.ObjectL</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ObjectL</servlet-name>
+    <url-pattern>/ObjectL/*</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>ObjectS</display-name>
+    <servlet-name>ObjectS</servlet-name>
+    <servlet-class>ananas.jing.lite.server.servlet.ObjectS</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ObjectS</servlet-name>
+    <url-pattern>/j/*</url-pattern>
+  </servlet-mapping>
 </web-app>
