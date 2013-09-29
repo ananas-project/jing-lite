@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import ananas.jing.lite.core.JingEndpointFactory;
 import ananas.jing.lite.core.JingRepo;
@@ -30,7 +32,8 @@ public class TestJingLiteClient {
 
 		File repo1 = new File("/home/xukun/test/jing-lite/repo1/.xgit");
 		File repo2 = new File("/home/xukun/test/jing-lite/repo2/.xgit");
-		String url = "http://localhost:18080/jing-lite-server/ObjectHub";
+		String url = "http://puyatech.com/jing/";
+
 		JingEndpointFactory factory = JingEndpointFactory.Agent.getInstance();
 		JingClient client1 = factory.newClient(repo1, url);
 		JingClient client2 = factory.newClient(repo2, url);
@@ -44,59 +47,8 @@ public class TestJingLiteClient {
 	private void run() {
 
 		final JingClient client = this._client;
-		final JingRepo repo = client.getRepo();
 
-		File obj_dir = repo.getFile(JingRepo.dir_objects);
-		if (!obj_dir.exists()) {
-			obj_dir.mkdirs();
-		}
-		// String repo_dir_name = repo.getFile(JingRepo.dir_repo).getName();
-		File works = repo.getFile(JingRepo.dir_workspace);
-		File[] list = works.listFiles();
-		for (File file : list) {
-			if (file.exists())
-				if (!file.isDirectory()) {
-
-					System.out.println("addFileAsObject : " + file);
-					LocalXGitObject go = repo.getApiL().addRawObject("blob",
-							file);
-					System.out.println("added object " + go);
-
-					RemoteXGitObject rgo = client.push(go);
-
-					// this.__print(rgo);
-
-					rgo = client.head(rgo.getLongURL());
-
-					this.__print(rgo);
-
-					JingClient client2 = this._client2;
-					LocalXGitObject lgo2 = client2.pull(rgo.getLongURL());
-
-					try {
-						XGitCheckout co = client2.getRepo().getApiL()
-								.checkout(lgo2);
-
-						File works2 = client2.getRepo().getFile(
-								XGitRepo.dir_workspace);
-
-						String sha1 = lgo2.getSha1();
-						OutputStream out = new FileOutputStream(new File(
-								works2, sha1));
-
-						InputStream in = co.getInputStream();
-						StreamPump pump = (new StreamPump(in, out));
-						pump.run();
-
-						out.close();
-						co.close();
-
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-
-				}
-		}
+		client.sendMessage("13066668888", "hello,world", null);
 
 	}
 

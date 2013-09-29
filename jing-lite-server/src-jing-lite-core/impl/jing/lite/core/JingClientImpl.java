@@ -1,25 +1,32 @@
-package ananas.jing.lite.core.impl;
+package impl.jing.lite.core;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 import ananas.jing.lite.core.Const;
 import ananas.jing.lite.core.JingRepo;
 import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.RemoteXGitObject;
 import ananas.jing.lite.core.client.JingClient;
-import ananas.jing.lite.core.util.StreamPump;
+import ananas.jing.lite.core.xgitp.XGITPContext;
+import ananas.jing.lite.core.xgitp.XGITPRequest;
+import ananas.jing.lite.core.xgitp.XGITPRequestFactory;
 
 public class JingClientImpl implements JingClient {
 
 	private final JingRepo _repo;
 	private final String _url;
+	private XGITPContext _master_context;
 
 	public JingClientImpl(File repo, String url) {
 		this._repo = new DefaultJingRepo(repo);
@@ -37,40 +44,61 @@ public class JingClientImpl implements JingClient {
 		try {
 			InputStream in = new FileInputStream(go.getFile());
 
-			URL url = new URL(this._url);
-			System.out.println(url + " << " + go.getSha1());
-
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty(Const.XGITP.method, Const.XGITP.method_put);
-			conn.setRequestProperty(Const.XGITP.object_sha1, go.getSha1());
-			conn.setRequestProperty(Const.XGITP.object_type, go.getType());
-			conn.setRequestProperty(Const.XGITP.object_length, go.getLength()
-					+ "");
-			conn.setDoOutput(true);
-
-			OutputStream out = conn.getOutputStream();
-			(new StreamPump(in, out)).run();
-
+			XGITPRequestFactory factory = XGITPRequestFactory.Agent
+					.getInstance();
+			XGITPContext context = this.__getMasterContext();
+			XGITPRequest req = factory.request(go.getSha1(), context);
+			req.push(in);
 			in.close();
+			int code = req.getHttpResponseCode();
+			if (code != 200) {
+				String msg = req.getHttpResponseMessage();
+				throw new IOException("HTTP " + code + " " + msg);
+			}
 
-			int code = conn.getResponseCode();
-			String msg = conn.getResponseMessage();
-			System.out.println("HTTP " + code + " " + msg);
-
-			RemoteXGitObject rgo = this.__buildRemoteXGitObject(conn);
-
-			in = conn.getInputStream();
-			in.close();
-			out.close();
-			conn.disconnect();
-
-			return rgo;
+			return this.__buildRemoteXGitObject(req);
 
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	private RemoteXGitObject __buildRemoteXGitObject(XGITPRequest req) {
+		Map<String, String> map = new HashMap<String, String>();
+
+		map.put(Const.XGITP.endpoint, req.getContext().getEndpointURL());
+		map.put(Const.XGITP.object_length, req.getLength() + "");
+		map.put(Const.XGITP.object_sha1, req.getSHA1());
+		map.put(Const.XGITP.object_type, req.getType());
+		map.put(Const.XGITP.object_url_full, req.getLongURL());
+		map.put(Const.XGITP.object_url_short, req.getShortURL());
+
+		return new DefaultRemoteXGitObject(map);
+	}
+
+	private XGITPContext __getMasterContext() {
+		try {
+			XGITPContext context = this._master_context;
+			if (context != null) {
+				return context;
+			}
+
+			XGITPRequestFactory factory = XGITPRequestFactory.Agent
+					.getInstance();
+			XGITPRequest req = factory.request(this._url);
+			req.head();
+			int code = req.getHttpResponseCode();
+			if (code != 200) {
+				String msg = req.getHttpResponseMessage();
+				throw new IOException("HTTP " + code + " " + msg);
+			}
+			context = req.getContext();
+			this._master_context = context;
+			return context;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private RemoteXGitObject __buildRemoteXGitObject(HttpURLConnection conn) {
@@ -230,6 +258,92 @@ public class JingClientImpl implements JingClient {
 	@Override
 	public RemoteXGitObject head(String url) {
 		return __head(url, 8);
+	}
+
+	@Override
+	public void sendMessage(String to, String overview, Properties src) {
+
+		try {
+
+			final Properties dest = new Properties();
+			dest.setProperty(Const.Jing.direction, Const.Jing.direction_tx);
+			dest.setProperty(Const.Jing.text_overview, overview);
+			dest.setProperty(Const.Jing.addr_to, to);
+
+			if (src != null) {
+				Set<Object> keys = src.keySet();
+				for (Object k : keys) {
+					String key = k.toString();
+					String value = src.getProperty(key);
+					dest.setProperty(key, value);
+				}
+			}
+
+			String prefix = "jing-tx";
+			File file = this.__gen_sms_buffer_file_path(prefix);
+			OutputStream out = new FileOutputStream(file);
+			dest.store(out, file.getName());
+			out.flush();
+			out.close();
+			System.out.println("write to " + file);
+
+			this.__do_msg_rt();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void receiveMessage(String from, String url) {
+		try {
+
+			Properties prop = new Properties();
+			prop.setProperty(Const.Jing.direction, Const.Jing.direction_rx);
+			prop.setProperty(Const.Jing.addr_from, from);
+			prop.setProperty(Const.Jing.message_url, url);
+
+			String prefix = "jing-rx";
+			File file = this.__gen_sms_buffer_file_path(prefix);
+			OutputStream out = new FileOutputStream(file);
+			prop.store(out, file.getName());
+			out.flush();
+			out.close();
+
+			this.__do_msg_rt();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private File __gen_sms_buffer_file_path(String prefix) {
+		long now = System.currentTimeMillis();
+		JingRepo repo = this.getRepo();
+		File dir = repo.getFile(JingRepo.dir_sms_buffer);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		if (prefix == null) {
+			return new File(dir, "default");
+		}
+		return new File(dir, "tmp_" + prefix + now + ".properties");
+	}
+
+	@Override
+	public void sendMessage() {
+		this.__do_msg_rt();
+	}
+
+	@Override
+	public void receiveMessage() {
+		this.__do_msg_rt();
+	}
+
+	private void __do_msg_rt() {
+		JingClient client  = this ;
+		Runnable runn = new MessageRT( client );
+		(new Thread(runn)).start();
 	}
 
 }

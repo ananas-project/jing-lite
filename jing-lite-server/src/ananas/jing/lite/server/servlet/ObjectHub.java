@@ -59,11 +59,6 @@ public class ObjectHub extends HttpServlet {
 		String method = this.__getProperty(request, Const.XGITP.method);
 		String sha1 = this.__getProperty(request, Const.XGITP.object_sha1);
 
-		if (sha1 == null) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return;
-		}
-
 		String sp = "     ";
 		String str_method = (method + sp).substring(0, sp.length());
 		System.out.println("XGITP: " + str_method + " " + sha1);
@@ -95,10 +90,10 @@ public class ObjectHub extends HttpServlet {
 		LocalXGitObject go = repo.getXGitObject(sha1);
 		if (go.exists()) {
 			ServletUtil.make_response_headers(request, response, go);
-			response.setStatus(HttpServletResponse.SC_OK);
 		} else {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			ServletUtil.make_response_headers(request, response, null);
 		}
+		response.setStatus(HttpServletResponse.SC_OK);
 
 	}
 
@@ -111,13 +106,13 @@ public class ObjectHub extends HttpServlet {
 		LocalXGitObject go = repo.getXGitObject(sha1);
 		if (go.exists()) {
 			ServletUtil.make_response_headers(request, response, go);
-			response.setStatus(HttpServletResponse.SC_OK);
 			OutputStream out = response.getOutputStream();
 			XGitApiL lapi = repo.getApiL();
 			lapi.getZippedObject(go, out);
 		} else {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			ServletUtil.make_response_headers(request, response, null);
 		}
+		response.setStatus(HttpServletResponse.SC_OK);
 	}
 
 	private void __do_xgitp_put(HttpServletRequest request,

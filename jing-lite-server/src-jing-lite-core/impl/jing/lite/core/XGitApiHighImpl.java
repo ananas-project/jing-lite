@@ -1,4 +1,4 @@
-package ananas.jing.lite.core.impl;
+package impl.jing.lite.core;
 
 import ananas.jing.lite.core.xgit.XGitApiH;
 import ananas.jing.lite.core.xgit.XGitRepo;

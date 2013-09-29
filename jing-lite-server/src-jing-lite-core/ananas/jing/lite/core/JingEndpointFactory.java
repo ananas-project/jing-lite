@@ -1,9 +1,10 @@
 package ananas.jing.lite.core;
 
+import impl.jing.lite.core.JingEndpointFactoryImpl;
+
 import java.io.File;
 
 import ananas.jing.lite.core.client.JingClient;
-import ananas.jing.lite.core.impl.JingEndpointFactoryImpl;
 import ananas.jing.lite.core.server.JingServer;
 
 public interface JingEndpointFactory {

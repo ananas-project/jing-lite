@@ -1,4 +1,4 @@
-package ananas.jing.lite.core.impl;
+package impl.jing.lite.core;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +15,9 @@ public class XGitObjectImpl implements LocalXGitObject {
 	private Header _header;
 
 	public XGitObjectImpl(XGitRepo repo, String sha1) {
+		if (sha1 == null) {
+			sha1 = "none";
+		}
 		this._repo = repo;
 		this._sha1 = sha1.toLowerCase().trim();
 	}

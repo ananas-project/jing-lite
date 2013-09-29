@@ -1,4 +1,4 @@
-package ananas.jing.lite.core.impl;
+package impl.jing.lite.core;
 
 import java.io.IOException;
 import java.io.InputStream;
