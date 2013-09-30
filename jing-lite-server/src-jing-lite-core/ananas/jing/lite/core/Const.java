@@ -37,6 +37,7 @@ public interface Const {
 		String object_url_short = "xgitp.object.url.short";
 		String object_url_full = "xgitp.object.url.full";
 
+		String method_disc = "discovery";
 		String method_get = "get";
 		String method_put = "put";
 		String method_head = "head";

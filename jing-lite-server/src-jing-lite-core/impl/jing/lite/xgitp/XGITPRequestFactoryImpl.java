@@ -21,7 +21,7 @@ public class XGITPRequestFactoryImpl implements XGITPRequestFactory {
 	@Override
 	public XGITPRequest request(String url) {
 		URI uri = URI.create(url);
-		return new XGITPRequestImpl(uri);
+		return new XGITPRequestImpl( uri );
 	}
 
 	@Override

@@ -119,7 +119,7 @@ public class MessageRT implements Runnable {
 
 		// push to server
 		RemoteXGitObject go2 = this._client.push(sr1.getXGitObject());
-		String url = go2.getShortURL();
+		String url = go2.getLongURL();
 		String msg = "jing: " + url;
 		String to = prop0.getProperty(Const.Jing.addr_to);
 		this.__send_with_sms(to, msg);

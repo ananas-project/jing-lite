@@ -21,6 +21,7 @@ import ananas.jing.lite.core.client.JingClient;
 import ananas.jing.lite.core.xgitp.XGITPContext;
 import ananas.jing.lite.core.xgitp.XGITPRequest;
 import ananas.jing.lite.core.xgitp.XGITPRequestFactory;
+import ananas.jing.lite.core.xgitp.XGITPResponse;
 
 public class JingClientImpl implements JingClient {
 
@@ -48,15 +49,15 @@ public class JingClientImpl implements JingClient {
 					.getInstance();
 			XGITPContext context = this.__getMasterContext();
 			XGITPRequest req = factory.request(go.getSha1(), context);
-			req.push(in);
+			XGITPResponse resp = req.push(in);
 			in.close();
-			int code = req.getHttpResponseCode();
+			int code = resp.getResponseCode();
 			if (code != 200) {
-				String msg = req.getHttpResponseMessage();
+				String msg = resp.getResponseMessage();
 				throw new IOException("HTTP " + code + " " + msg);
 			}
 
-			return this.__buildRemoteXGitObject(req);
+			return this.__buildRemoteXGitObject(resp);
 
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -64,15 +65,15 @@ public class JingClientImpl implements JingClient {
 
 	}
 
-	private RemoteXGitObject __buildRemoteXGitObject(XGITPRequest req) {
+	private RemoteXGitObject __buildRemoteXGitObject(XGITPResponse resp) {
 		Map<String, String> map = new HashMap<String, String>();
 
-		map.put(Const.XGITP.endpoint, req.getContext().getEndpointURL());
-		map.put(Const.XGITP.object_length, req.getLength() + "");
-		map.put(Const.XGITP.object_sha1, req.getSHA1());
-		map.put(Const.XGITP.object_type, req.getType());
-		map.put(Const.XGITP.object_url_full, req.getLongURL());
-		map.put(Const.XGITP.object_url_short, req.getShortURL());
+		map.put(Const.XGITP.endpoint, resp.getContext().getEndpointURL());
+		map.put(Const.XGITP.object_length, resp.getLength() + "");
+		map.put(Const.XGITP.object_sha1, resp.getSHA1());
+		map.put(Const.XGITP.object_type, resp.getType());
+		map.put(Const.XGITP.object_url_full, resp.getLongURL());
+		map.put(Const.XGITP.object_url_short, resp.getShortURL());
 
 		return new DefaultRemoteXGitObject(map);
 	}
@@ -87,10 +88,10 @@ public class JingClientImpl implements JingClient {
 			XGITPRequestFactory factory = XGITPRequestFactory.Agent
 					.getInstance();
 			XGITPRequest req = factory.request(this._url);
-			req.head();
-			int code = req.getHttpResponseCode();
+			XGITPResponse resp = req.head();
+			int code = resp.getResponseCode();
 			if (code != 200) {
-				String msg = req.getHttpResponseMessage();
+				String msg = resp.getResponseMessage();
 				throw new IOException("HTTP " + code + " " + msg);
 			}
 			context = req.getContext();
@@ -341,8 +342,8 @@ public class JingClientImpl implements JingClient {
 	}
 
 	private void __do_msg_rt() {
-		JingClient client  = this ;
-		Runnable runn = new MessageRT( client );
+		JingClient client = this;
+		Runnable runn = new MessageRT(client);
 		(new Thread(runn)).start();
 	}
 

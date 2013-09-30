@@ -9,26 +9,14 @@ public interface XGITPRequest {
 
 	String getSHA1();
 
-	void pull(OutputStream out);
+	String getOriginURL();
 
-	void push(InputStream in);
+	XGITPResponse pull(OutputStream out);
 
-	void head();
+	XGITPResponse push(InputStream in);
 
-	int getHttpResponseCode();
+	XGITPResponse head();
 
-	int getXGitpResponseCode();
-
-	String getHttpResponseMessage();
-
-	String getXGitpResponseMessage();
-
-	long getLength();
-
-	String getType();
-
-	String getLongURL();
-
-	String getShortURL();
+	XGITPResponse discovery();
 
 }

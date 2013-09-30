@@ -12,33 +12,27 @@ import ananas.jing.lite.core.Const;
 import ananas.jing.lite.core.util.StreamPump;
 import ananas.jing.lite.core.xgitp.XGITPContext;
 import ananas.jing.lite.core.xgitp.XGITPRequest;
+import ananas.jing.lite.core.xgitp.XGITPResponse;
 
 public class XGITPRequestImpl implements XGITPRequest {
 
+	private final URI _origin_url;
 	private String _sha1;
-	private final XGITPContext _context;
-	private String _http_resp_message;
-	private int _http_resp_code;
-	private String _xgitp_resp_message;
-	private int _xgitp_resp_code;
-	private long _resp_length;
-	private String _resp_type;
-	private String _resp_long_url;
-	private String _resp_short_url;
+	private XGITPContext _context;
 
-	public XGITPRequestImpl(URI url) {
-		this._sha1 = null;
-		this._context = new XGITPContextImpl(url);
+	public XGITPRequestImpl(URI uri) {
+		this._origin_url = uri;
 	}
 
-	public XGITPRequestImpl(String sha1, URI url) {
+	public XGITPRequestImpl(String sha1, URI uri) {
 		this._sha1 = sha1;
-		this._context = new XGITPContextImpl(url);
+		this._origin_url = uri;
 	}
 
 	public XGITPRequestImpl(String sha1, XGITPContext context) {
 		this._sha1 = sha1;
 		this._context = context;
+		this._origin_url = URI.create(context.getEndpointURL());
 	}
 
 	@Override
@@ -52,228 +46,155 @@ public class XGITPRequestImpl implements XGITPRequest {
 	}
 
 	@Override
-	public void pull(OutputStream out) {
-
-		try {
-			String url = null;
-			HttpURLConnection conn = this.__doGet(Const.XGITP.method_get, url,
-					10);
-			if (conn != null) {
-				InputStream in = conn.getInputStream();
-				(new StreamPump(in, out)).run();
-				in.close();
-				conn.disconnect();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public String getOriginURL() {
+		return this._origin_url.toString();
 	}
 
-	private HttpURLConnection __doGet(String method, String url, int redirLimit)
+	private void __close_conn(HttpURLConnection conn) {
+
+		conn.disconnect();
+
+		if (this._sha1 == null) {
+			this._sha1 = conn.getHeaderField(Const.XGITP.object_sha1);
+		}
+
+		if (this._context == null) {
+			String ep = conn.getHeaderField(Const.XGITP.endpoint);
+			if (ep != null) {
+				this._context = new XGITPContextImpl(ep);
+			}
+		}
+
+	}
+
+	private XGITPResponse __build_response(HttpURLConnection conn, Exception ee) {
+		return new XGITPResponseImpl(this.getContext(), conn, ee);
+	}
+
+	private HttpURLConnection __open_conn(String method)
 			throws MalformedURLException, IOException {
 
-		if (redirLimit < 0) {
-			throw new RuntimeException(
-					"the http(xgitp) redirection is too many!");
-		}
+		String sha1 = this._sha1;
+		String url = null;
 
-		XGITPContext context = this.getContext();
-		if (url == null) {
+		if (method.equals(Const.XGITP.method_disc)) {
+			url = this._origin_url.toString();
+		} else {
+			XGITPContext context = this._context;
+			if (context == null) {
+				// do disc
+				XGITPResponse resp = this.discovery();
+				context = resp.getContext();
+				this._context = context;
+			}
 			url = context.getEndpointURL();
 		}
-		if (url == null) {
-			url = context.getMiddleURL();
-		}
-		if (url == null) {
-			url = context.getOriginalURL();
-		}
+
+		// /////////////////////
+
 		HttpURLConnection conn = (HttpURLConnection) (new URL(url))
 				.openConnection();
 
-		conn.setRequestMethod("GET");
-		conn.setRequestProperty(Const.XGITP.method, method);
-		final String sha1 = this._sha1;
 		if (sha1 != null)
 			conn.setRequestProperty(Const.XGITP.object_sha1, sha1);
+		conn.setRequestProperty(Const.XGITP.method, method);
 
+		if (Const.XGITP.method_put.equals(method)) {
+			conn.setRequestMethod("POST");
+			conn.setDoOutput(true);
+		} else {
+			conn.setRequestMethod("GET");
+		}
+		return conn;
+	}
+
+	private void __proc_response(HttpURLConnection conn) throws IOException {
+
+		String url = conn.getURL().toString();
 		int code = conn.getResponseCode();
-		String msg = conn.getResponseMessage();
-		this._http_resp_code = code;
-		this._http_resp_message = msg;
 		if (code == 200) {
-			// http is ok
-			String ver = conn.getHeaderField(Const.XGITP.version);
-			if (ver == null) {
+			String ep = conn.getHeaderField(Const.XGITP.endpoint);
+			if (ep == null) {
 				conn.disconnect();
-				throw new RuntimeException("the url is not a xgitp service : "
-						+ url);
-			}
-			String s = conn.getHeaderField(Const.XGITP.status_code);
-			code = Integer.parseInt(s);
-			msg = conn.getHeaderField(Const.XGITP.status_message);
-			this._xgitp_resp_code = code;
-			this._xgitp_resp_message = msg;
-		}
-
-		String location = conn.getHeaderField("Location");
-		String res___ep = conn.getHeaderField(Const.XGITP.endpoint);
-		String res__len = conn.getHeaderField(Const.XGITP.object_length);
-		String res_type = conn.getHeaderField(Const.XGITP.object_type);
-		String res_furl = conn.getHeaderField(Const.XGITP.object_url_full);
-		String res_surl = conn.getHeaderField(Const.XGITP.object_url_short);
-		String res_sha1 = conn.getHeaderField(Const.XGITP.object_sha1);
-
-		if (res___ep != null) {
-			context.setEndpointURL(res___ep);
-		}
-
-		switch (code) {
-		case HttpURLConnection.HTTP_OK: {
-
-			if (res_sha1 == null) {
-				conn.disconnect();
-				return null;
+				throw new RuntimeException("It's not a xgitp service : " + url);
 			} else {
 
-				if (sha1 == null) {
-					this._sha1 = res_sha1;
-				} else {
-
-					if (!sha1.equalsIgnoreCase(res_sha1)) {
-						conn.disconnect();
-						throw new RuntimeException(
-								"the sha1 in request & response is different!");
-					}
-
-				}
-
-				if (res__len != null)
-					this._resp_length = Long.parseLong(res__len);
-				this._resp_type = res_type;
-				this._resp_short_url = res_surl;
-				this._resp_long_url = res_furl;
-
-				return conn;
 			}
-
-		}
-		case HttpURLConnection.HTTP_MOVED_PERM: {
+		} else {
 			conn.disconnect();
-			if (location != null) {
-				context.setMiddleURL(location);
-			}
-			return this.__doGet(method, location, redirLimit - 1);
+			String msg = conn.getResponseMessage();
+			throw new RuntimeException("xgitp - HTTP " + code + " " + msg
+					+ " : " + url);
 		}
-		case HttpURLConnection.HTTP_MOVED_TEMP: {
-			conn.disconnect();
-			return this.__doGet(method, location, redirLimit - 1);
-		}
-		default:
-			conn.disconnect();
-			System.err.println("XGITP: " + url + " ==>> HTTP " + code + " "
-					+ msg);
-		}
-
-		return null;
 
 	}
 
 	@Override
-	public void push(InputStream in) {
-
-		this.head();
-		if (this.getXGitpResponseCode() == 200) {
-			// lazy push
-			return;
-		}
+	public XGITPResponse push(InputStream in) {
+		HttpURLConnection conn = null;
+		Exception ee = null;
 		try {
-			String sha1 = this._sha1 + "";
-			String url = this.getContext().getEndpointURL();
-			if (sha1.length() < 20) {
-				throw new IOException("No sha1 for the XGITP request! ");
-			}
-			if (url == null) {
-				throw new IOException("No Endpoint for the XGITP request! ");
-			}
-			HttpURLConnection conn = (HttpURLConnection) (new URL(url))
-					.openConnection();
-
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty(Const.XGITP.method, Const.XGITP.method_put);
-			conn.setRequestProperty(Const.XGITP.object_sha1, sha1);
-
-			conn.setDoOutput(true);
+			String method = Const.XGITP.method_put;
+			conn = this.__open_conn(method);
 			OutputStream out = conn.getOutputStream();
 			(new StreamPump(in, out)).run();
-			out.close();
-
-			int code = conn.getResponseCode();
-			String message = conn.getResponseMessage();
-			conn.disconnect();
-			this._http_resp_code = code;
-			this._http_resp_message = message;
-			if (code != 200) {
-				throw new IOException("HTTP " + code + " " + message);
-			}
-
+			this.__proc_response(conn);
+			this.__close_conn(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
+			ee = e;
 		}
+		return this.__build_response(conn, ee);
 	}
 
 	@Override
-	public void head() {
+	public XGITPResponse head() {
+		HttpURLConnection conn = null;
+		Exception ee = null;
 		try {
-			String url = null;
-			HttpURLConnection conn = this.__doGet(Const.XGITP.method_head, url,
-					10);
-			if (conn != null) {
-				conn.disconnect();
-			}
+			String method = Const.XGITP.method_head;
+			conn = this.__open_conn(method);
+			this.__proc_response(conn);
+			this.__close_conn(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
+			ee = e;
 		}
-
+		return this.__build_response(conn, ee);
 	}
 
 	@Override
-	public long getLength() {
-		return this._resp_length;
+	public XGITPResponse pull(OutputStream out) {
+		HttpURLConnection conn = null;
+		Exception ee = null;
+		try {
+			String method = Const.XGITP.method_get;
+			conn = this.__open_conn(method);
+			this.__proc_response(conn);
+			InputStream in = conn.getInputStream();
+			(new StreamPump(in, out)).run();
+			this.__close_conn(conn);
+		} catch (Exception e) {
+			e.printStackTrace();
+			ee = e;
+		}
+		return this.__build_response(conn, ee);
 	}
 
 	@Override
-	public String getType() {
-		return this._resp_type;
-	}
-
-	@Override
-	public String getLongURL() {
-		return this._resp_long_url;
-	}
-
-	@Override
-	public String getShortURL() {
-		return this._resp_short_url;
-	}
-
-	@Override
-	public int getHttpResponseCode() {
-		return this._http_resp_code;
-	}
-
-	@Override
-	public int getXGitpResponseCode() {
-		return this._xgitp_resp_code;
-	}
-
-	@Override
-	public String getHttpResponseMessage() {
-		return this._http_resp_message;
-	}
-
-	@Override
-	public String getXGitpResponseMessage() {
-		return this._xgitp_resp_message;
+	public XGITPResponse discovery() {
+		HttpURLConnection conn = null;
+		Exception ee = null;
+		try {
+			String method = Const.XGITP.method_disc;
+			conn = this.__open_conn(method);
+			this.__proc_response(conn);
+			this.__close_conn(conn);
+		} catch (Exception e) {
+			e.printStackTrace();
+			ee = e;
+		}
+		return this.__build_response(conn, ee);
 	}
 
 }
