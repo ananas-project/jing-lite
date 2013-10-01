@@ -81,7 +81,7 @@ public class MessageRT implements Runnable {
 
 	private void __do_rx(File tmpFile, Properties prop) throws IOException {
 
-		String addr_from = prop.getProperty(Const.Jing.addr_from);
+		String addr_from = prop.getProperty(Const.Jing.tx_addr);
 		String url = prop.getProperty(Const.Jing.message_url);
 		LocalXGitObject res = _client.pull(url);
 
@@ -105,26 +105,31 @@ public class MessageRT implements Runnable {
 			co.close();
 			in.close();
 
-			final Properties prop_detail = new Properties();
-			this.__load_prop(prop_detail, file_detail);
+			final Properties detail = new Properties();
+			this.__load_prop(detail, file_detail);
 
 			// build overview file
-			final Properties prop_overview = new Properties();
+			final Properties overview = new Properties();
 			{
-				final int len_limit = 99;
-				String overview = ""
-						+ prop_detail.getProperty(Const.Jing.text_detail);
-				if (overview.length() > len_limit) {
-					overview = overview.substring(len_limit) + " ...";
-				}
+				overview.putAll(detail);
+				overview.remove(Const.Jing.text_detail);
 
-				prop.setProperty(Const.Jing.message_sha1, "" + sha1);
-				prop.setProperty(Const.Jing.text_overview, overview);
-				prop.setProperty(Const.Jing.addr_from, addr_from);
+				final long now = System.currentTimeMillis();
+
+				overview.setProperty(Const.Jing.message_sha1, "" + sha1);
+				overview.setProperty(Const.Jing.tx_addr, addr_from);
+				overview.setProperty(Const.Jing.rx_time, "" + now);
+				overview.setProperty(Const.Jing.direction,
+						Const.Jing.direction_rx);
 			}
-			this.__save_prop(prop_overview, file_overview);
+			this.__save_prop(overview, file_overview);
 
 			tmpFile.delete();
+
+			JingSMSHandler h = this._client.getSMSHandler();
+			if (h != null)
+				h.onReceive(_client, overview);
+
 		}
 
 	}
@@ -171,11 +176,13 @@ public class MessageRT implements Runnable {
 
 		final Properties detail = new Properties();
 		detail.putAll(prop0);
-		detail.remove(Const.Jing.addr_to);
-		detail.remove(Const.Jing.addr_from);
+		detail.remove(Const.Jing.direction);
+		detail.remove(Const.Jing.tx_addr);
+		detail.remove(Const.Jing.rx_addr);
+		detail.remove(Const.Jing.rx_time);
 		SaveResult sr1 = this.__save_to_repo(detail);
-
 		final String sha1 = sr1.getXGitObject().getSha1();
+
 		final File detail_file = this.__get_detail_file(sha1);
 		final File over_file = this.__get_overview_file(sha1);
 
@@ -184,9 +191,9 @@ public class MessageRT implements Runnable {
 
 		// make overview
 		final Properties overview = new Properties();
+		overview.putAll(prop0);
 		overview.putAll(detail);
 		overview.remove(Const.Jing.text_detail);
-		// overview.remove(Const.Jing.text_overview);
 		overview.setProperty(Const.Jing.message_sha1, sha1);
 		this.__save_prop(overview, over_file);
 
@@ -194,7 +201,7 @@ public class MessageRT implements Runnable {
 		RemoteXGitObject go2 = this._client.push(sr1.getXGitObject());
 		String url = go2.getLongURL();
 		String msg = "jing: " + url;
-		String to = prop0.getProperty(Const.Jing.addr_to);
+		String to = prop0.getProperty(Const.Jing.rx_addr);
 		this.__send_with_sms(to, msg);
 
 		// remove the temp file

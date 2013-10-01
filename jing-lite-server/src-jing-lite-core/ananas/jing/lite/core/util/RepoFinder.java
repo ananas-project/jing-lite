@@ -8,6 +8,8 @@ public interface RepoFinder {
 
 	List<File> find(File root, int depthLimit);
 
+	File findUp(File path);
+
 	class Factory {
 
 		public static RepoFinder newFinder() {
@@ -15,6 +17,8 @@ public interface RepoFinder {
 		}
 
 		private static class TheImpl implements RepoFinder {
+
+			static final String dir_name = ".xgit";
 
 			@Override
 			public List<File> find(File root, int depthLimit) {
@@ -35,14 +39,30 @@ public interface RepoFinder {
 				if (ls == null)
 					return;
 				System.out.println("find in " + path);
+
+				File xgit = new File(path, dir_name);
+				if (xgit.exists()) {
+					list.add(xgit);
+					System.out.println("    list << " + xgit);
+					return;
+				}
+
 				for (File file : ls) {
-					String name = file.getName();
-					if (".xgit".equals(name)) {
-						list.add(file);
-						System.out.println("    list << " + file);
-					}
 					this.__find(list, file, depthLimit - 1);
 				}
+			}
+
+			@Override
+			public File findUp(File path) {
+				for (int i = 0; path != null; path = path.getParentFile(), i++) {
+					if (i > 100)
+						break;
+					File dir = new File(path, dir_name);
+					if (dir.exists())
+						if (dir.isDirectory())
+							return dir;
+				}
+				return null;
 			}
 		}
 

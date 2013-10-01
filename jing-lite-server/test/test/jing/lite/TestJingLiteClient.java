@@ -2,6 +2,7 @@ package test.jing.lite;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.Properties;
 
 import ananas.jing.lite.core.JingEndpointFactory;
 import ananas.jing.lite.core.JingSMSHandler;
@@ -67,6 +68,12 @@ public class TestJingLiteClient implements JingSMSHandler {
 
 		this._client2.getMessageManager().receiveMessage(addr, msg);
 
+	}
+
+	@Override
+	public void onReceive(JingClient client, Properties overview) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

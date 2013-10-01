@@ -21,15 +21,53 @@ public class JingMessageManagerImpl implements JingMessageManager {
 		this._client = client;
 	}
 
+	static class MyUtil {
+
+		public static String genOverviewForText(String text, int max_length,
+				String suffix) {
+
+			boolean trimed = false;
+
+			StringBuilder sb = new StringBuilder();
+			char[] chs = text.toCharArray();
+			for (char ch : chs) {
+				if (ch <= 0)
+					continue;
+				if (ch == 0x0a || ch == 0x0d)
+					continue;
+				sb.append(ch);
+
+				if (sb.length() >= max_length) {
+					trimed = true;
+					break;
+				}
+			}
+
+			if (suffix != null)
+				if (trimed) {
+					sb.append(suffix);
+				}
+
+			return sb.toString();
+		}
+	}
+
 	@Override
-	public void sendMessage(String to, String overview, Properties src) {
+	public void sendMessage(String to, String text, Properties src) {
 
 		try {
 
+			String overview = MyUtil.genOverviewForText(text, 128, " ...");
+
+			final long now = System.currentTimeMillis();
 			final Properties dest = new Properties();
+			if (src != null)
+				dest.putAll(src);
 			dest.setProperty(Const.Jing.direction, Const.Jing.direction_tx);
 			dest.setProperty(Const.Jing.text_overview, overview);
-			dest.setProperty(Const.Jing.addr_to, to);
+			dest.setProperty(Const.Jing.text_detail, text);
+			dest.setProperty(Const.Jing.rx_addr, to);
+			dest.setProperty(Const.Jing.tx_time, "" + now);
 
 			if (src != null) {
 				Set<Object> keys = src.keySet();
@@ -72,7 +110,7 @@ public class JingMessageManagerImpl implements JingMessageManager {
 			// gen rx task
 			Properties prop = new Properties();
 			prop.setProperty(Const.Jing.direction, Const.Jing.direction_rx);
-			prop.setProperty(Const.Jing.addr_from, from);
+			prop.setProperty(Const.Jing.tx_addr, from);
 			prop.setProperty(Const.Jing.message_url, url);
 
 			String prefix = "jing-rx";
