@@ -1,24 +1,14 @@
 package test.jing.lite;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import ananas.jing.lite.core.JingEndpointFactory;
-import ananas.jing.lite.core.JingRepo;
-import ananas.jing.lite.core.LocalXGitObject;
+import ananas.jing.lite.core.JingSMSHandler;
 import ananas.jing.lite.core.RemoteXGitObject;
 import ananas.jing.lite.core.client.JingClient;
-import ananas.jing.lite.core.util.StreamPump;
-import ananas.jing.lite.core.xgit.XGitCheckout;
-import ananas.jing.lite.core.xgit.XGitRepo;
 
-public class TestJingLiteClient {
+public class TestJingLiteClient implements JingSMSHandler {
 
 	private final JingClient _client;
 	private final JingClient _client2;
@@ -35,12 +25,16 @@ public class TestJingLiteClient {
 		String url = "http://puyatech.com/jing/";
 
 		JingEndpointFactory factory = JingEndpointFactory.Agent.getInstance();
+
 		JingClient client1 = factory.newClient(repo1, url);
 		JingClient client2 = factory.newClient(repo2, url);
 		System.out.println("" + client1);
 		System.out.println("" + client2);
 
 		TestJingLiteClient test = new TestJingLiteClient(client1, client2);
+
+		client1.setSMSHandler(test);
+
 		test.run();
 	}
 
@@ -48,7 +42,8 @@ public class TestJingLiteClient {
 
 		final JingClient client = this._client;
 
-		client.sendMessage("13066668888", "hello,world", null);
+		client.getMessageManager().sendMessage("13066668888", "hello,world",
+				null);
 
 	}
 
@@ -62,6 +57,15 @@ public class TestJingLiteClient {
 		out.println("    length = " + rgo.getLength());
 		out.println("    url-l  = " + rgo.getLongURL());
 		out.println("    url-s  = " + rgo.getShortURL());
+
+	}
+
+	@Override
+	public void sendSMS(String addr, String msg) {
+
+		System.out.println(this + ".sendSMS : " + addr + " << " + msg);
+
+		this._client2.getMessageManager().receiveMessage(addr, msg);
 
 	}
 

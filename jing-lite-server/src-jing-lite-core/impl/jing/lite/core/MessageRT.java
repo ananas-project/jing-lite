@@ -5,13 +5,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
 
 import ananas.jing.lite.core.Const;
 import ananas.jing.lite.core.JingRepo;
+import ananas.jing.lite.core.JingSMSHandler;
 import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.RemoteXGitObject;
 import ananas.jing.lite.core.client.JingClient;
+import ananas.jing.lite.core.util.StreamPump;
+import ananas.jing.lite.core.xgit.XGitCheckout;
 
 public class MessageRT implements Runnable {
 
@@ -26,7 +30,7 @@ public class MessageRT implements Runnable {
 	@Override
 	public void run() {
 
-		File dir = _repo.getFile(JingRepo.dir_sms_buffer);
+		File dir = _repo.getFile(JingRepo.dir_sms_task);
 		if (!dir.exists())
 			return;
 
@@ -75,9 +79,76 @@ public class MessageRT implements Runnable {
 
 	}
 
-	private void __do_rx(File tmpFile, Properties prop) {
-		// TODO Auto-generated method stub
+	private void __do_rx(File tmpFile, Properties prop) throws IOException {
 
+		String addr_from = prop.getProperty(Const.Jing.addr_from);
+		String url = prop.getProperty(Const.Jing.message_url);
+		LocalXGitObject res = _client.pull(url);
+
+		if (res.exists()) {
+
+			final String sha1 = res.getSha1();
+			final File file_detail = this.__get_detail_file(sha1);
+			final File file_overview = this.__get_overview_file(sha1);
+
+			File dir = file_detail.getParentFile();
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+
+			// checkout
+			XGitCheckout co = res.getRepo().getApiL().checkout(res);
+			InputStream in = co.getInputStream();
+			FileOutputStream out = new FileOutputStream(file_detail);
+			(new StreamPump(in, out)).run();
+			out.close();
+			co.close();
+			in.close();
+
+			final Properties prop_detail = new Properties();
+			this.__load_prop(prop_detail, file_detail);
+
+			// build overview file
+			final Properties prop_overview = new Properties();
+			{
+				final int len_limit = 99;
+				String overview = ""
+						+ prop_detail.getProperty(Const.Jing.text_detail);
+				if (overview.length() > len_limit) {
+					overview = overview.substring(len_limit) + " ...";
+				}
+
+				prop.setProperty(Const.Jing.message_sha1, "" + sha1);
+				prop.setProperty(Const.Jing.text_overview, overview);
+				prop.setProperty(Const.Jing.addr_from, addr_from);
+			}
+			this.__save_prop(prop_overview, file_overview);
+
+			tmpFile.delete();
+		}
+
+	}
+
+	private void __save_prop(Properties prop, File file) throws IOException {
+		OutputStream out = new FileOutputStream(file);
+		prop.store(out, file.getName());
+		out.close();
+	}
+
+	private void __load_prop(Properties prop, File file) throws IOException {
+		FileInputStream in = new FileInputStream(file);
+		prop.load(in);
+		in.close();
+	}
+
+	private File __get_overview_file(String sha1) {
+		File dir = _repo.getFile(JingRepo.dir_sms);
+		return new File(dir, sha1 + ".txt");
+	}
+
+	private File __get_detail_file(String sha1) {
+		File dir = _repo.getFile(JingRepo.dir_sms_remote);
+		return new File(dir, sha1 + "");
 	}
 
 	class SaveResult {
@@ -98,24 +169,26 @@ public class MessageRT implements Runnable {
 
 		// gen the message git-object
 
-		Properties prop1 = new Properties();
-		prop1.putAll(prop0);
-		prop1.remove(Const.Jing.addr_to);
-		prop1.remove(Const.Jing.addr_from);
-		SaveResult sr1 = this.__save_to_repo(prop1);
+		final Properties detail = new Properties();
+		detail.putAll(prop0);
+		detail.remove(Const.Jing.addr_to);
+		detail.remove(Const.Jing.addr_from);
+		SaveResult sr1 = this.__save_to_repo(detail);
 
-		Properties prop2 = new Properties();
-		prop2.putAll(prop1);
-		prop2.remove(Const.Jing.text_detail);
-		prop2.remove(Const.Jing.text_overview);
-		prop2.setProperty(Const.Jing.message_sha1, sr1.getXGitObject()
-				.getSha1());
-		SaveResult sr2 = this.__save_to_repo(prop2);
-		sr2.getXGitObject();
+		final String sha1 = sr1.getXGitObject().getSha1();
+		final File detail_file = this.__get_detail_file(sha1);
+		final File over_file = this.__get_overview_file(sha1);
 
-		File dir_sms = this._repo.getFile(JingRepo.dir_sms);
-		File file_sms = new File(dir_sms, sr2.getXGitObject().getSha1());
-		file_sms.createNewFile();
+		// make detail
+		_repo.getApiL().checkout(sr1.getXGitObject(), detail_file);
+
+		// make overview
+		final Properties overview = new Properties();
+		overview.putAll(detail);
+		overview.remove(Const.Jing.text_detail);
+		// overview.remove(Const.Jing.text_overview);
+		overview.setProperty(Const.Jing.message_sha1, sha1);
+		this.__save_prop(overview, over_file);
 
 		// push to server
 		RemoteXGitObject go2 = this._client.push(sr1.getXGitObject());
@@ -142,7 +215,7 @@ public class MessageRT implements Runnable {
 
 		LocalXGitObject go = this._client.getRepo().getApiL()
 				.addRawObject("blob", file);
-		File sms_obj_dir = this._repo.getFile(JingRepo.dir_sms_objects);
+		File sms_obj_dir = this._repo.getFile(JingRepo.dir_sms_remote);
 		File sms_obj_file = new File(sms_obj_dir, go.getSha1());
 		if (!sms_obj_dir.exists()) {
 			sms_obj_dir.mkdirs();
@@ -155,6 +228,11 @@ public class MessageRT implements Runnable {
 	private void __send_with_sms(String to, String msg) {
 		// TODO Auto-generated method stub
 		System.out.println(to + " << " + msg);
+		JingSMSHandler h = this._client.getSMSHandler();
+		if (h != null)
+			h.sendSMS(to, msg);
+		else
+			System.err.println("warning : no sms handler !");
 		// throw new RuntimeException("no impl");
 	}
 

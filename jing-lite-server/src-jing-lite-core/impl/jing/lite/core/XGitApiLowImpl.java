@@ -165,4 +165,14 @@ public class XGitApiLowImpl implements XGitApiL {
 			}
 		return null;
 	}
+
+	@Override
+	public void checkout(LocalXGitObject go, File dest) throws IOException {
+		XGitCheckout co = this.checkout(go);
+		InputStream in = co.getInputStream();
+		OutputStream out = new FileOutputStream(dest);
+		(new StreamPump(in, out)).run();
+		out.close();
+		co.close();
+	}
 }

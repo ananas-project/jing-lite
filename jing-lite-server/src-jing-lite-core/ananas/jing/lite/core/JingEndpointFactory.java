@@ -19,4 +19,5 @@ public interface JingEndpointFactory {
 			return new JingEndpointFactoryImpl();
 		}
 	}
+
 }

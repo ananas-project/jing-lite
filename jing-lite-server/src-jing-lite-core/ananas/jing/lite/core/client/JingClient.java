@@ -1,8 +1,7 @@
 package ananas.jing.lite.core.client;
 
-import java.util.Properties;
-
 import ananas.jing.lite.core.JingEndpoint;
+import ananas.jing.lite.core.JingSMSHandler;
 import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.RemoteXGitObject;
 
@@ -21,13 +20,10 @@ public interface JingClient extends JingEndpoint {
 	RemoteXGitObject head(String url);
 
 	// sms
+	JingSMSHandler getSMSHandler();
 
-	void sendMessage(String to, String overview, Properties prope);
+	void setSMSHandler(JingSMSHandler h);
 
-	void receiveMessage(String from, String url);
-
-	void sendMessage();
-
-	void receiveMessage();
+	JingMessageManager getMessageManager();
 
 }

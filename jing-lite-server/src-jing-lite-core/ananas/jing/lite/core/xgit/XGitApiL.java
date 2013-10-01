@@ -19,4 +19,6 @@ public interface XGitApiL {
 
 	XGitCheckout checkout(LocalXGitObject go) throws IOException;
 
+	void checkout(LocalXGitObject go, File dest) throws IOException;
+
 }

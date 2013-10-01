@@ -16,23 +16,23 @@ import ananas.jing.lite.core.xgitp.XGITPResponse;
 
 public class XGITPRequestImpl implements XGITPRequest {
 
-	private final URI _origin_url;
+	private final String _origin_url;
 	private String _sha1;
 	private XGITPContext _context;
 
 	public XGITPRequestImpl(URI uri) {
-		this._origin_url = uri;
+		this._origin_url = (uri == null) ? null : uri.toString();
 	}
 
 	public XGITPRequestImpl(String sha1, URI uri) {
 		this._sha1 = sha1;
-		this._origin_url = uri;
+		this._origin_url = (uri == null) ? null : uri.toString();
 	}
 
 	public XGITPRequestImpl(String sha1, XGITPContext context) {
 		this._sha1 = sha1;
 		this._context = context;
-		this._origin_url = URI.create(context.getEndpointURL());
+		this._origin_url = context.getEndpointURL();
 	}
 
 	@Override
@@ -75,18 +75,9 @@ public class XGITPRequestImpl implements XGITPRequest {
 			throws MalformedURLException, IOException {
 
 		String sha1 = this._sha1;
-		String url = null;
-
-		if (method.equals(Const.XGITP.method_disc)) {
-			url = this._origin_url.toString();
-		} else {
+		String url = this._origin_url;
+		if (url == null) {
 			XGITPContext context = this._context;
-			if (context == null) {
-				// do disc
-				XGITPResponse resp = this.discovery();
-				context = resp.getContext();
-				this._context = context;
-			}
 			url = context.getEndpointURL();
 		}
 
@@ -108,18 +99,33 @@ public class XGITPRequestImpl implements XGITPRequest {
 		return conn;
 	}
 
-	private void __proc_response(HttpURLConnection conn) throws IOException {
+	private void __proc_conn(HttpURLConnection conn, InputStream in,
+			OutputStream out) throws IOException {
+
+		// req
+
+		if (in != null) {
+			OutputStream out2 = conn.getOutputStream();
+			(new StreamPump(in, out2)).run();
+		}
 
 		String url = conn.getURL().toString();
 		int code = conn.getResponseCode();
+
+		// resp
+
 		if (code == 200) {
 			String ep = conn.getHeaderField(Const.XGITP.endpoint);
 			if (ep == null) {
 				conn.disconnect();
 				throw new RuntimeException("It's not a xgitp service : " + url);
-			} else {
-
 			}
+
+			if (out != null) {
+				InputStream in2 = conn.getInputStream();
+				(new StreamPump(in2, out)).run();
+			}
+
 		} else {
 			conn.disconnect();
 			String msg = conn.getResponseMessage();
@@ -131,14 +137,12 @@ public class XGITPRequestImpl implements XGITPRequest {
 
 	@Override
 	public XGITPResponse push(InputStream in) {
+		String method = Const.XGITP.method_put;
 		HttpURLConnection conn = null;
 		Exception ee = null;
 		try {
-			String method = Const.XGITP.method_put;
 			conn = this.__open_conn(method);
-			OutputStream out = conn.getOutputStream();
-			(new StreamPump(in, out)).run();
-			this.__proc_response(conn);
+			this.__proc_conn(conn, in, null);
 			this.__close_conn(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -149,12 +153,12 @@ public class XGITPRequestImpl implements XGITPRequest {
 
 	@Override
 	public XGITPResponse head() {
+		String method = Const.XGITP.method_head;
 		HttpURLConnection conn = null;
 		Exception ee = null;
 		try {
-			String method = Const.XGITP.method_head;
 			conn = this.__open_conn(method);
-			this.__proc_response(conn);
+			this.__proc_conn(conn, null, null);
 			this.__close_conn(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -165,14 +169,12 @@ public class XGITPRequestImpl implements XGITPRequest {
 
 	@Override
 	public XGITPResponse pull(OutputStream out) {
+		String method = Const.XGITP.method_get;
 		HttpURLConnection conn = null;
 		Exception ee = null;
 		try {
-			String method = Const.XGITP.method_get;
 			conn = this.__open_conn(method);
-			this.__proc_response(conn);
-			InputStream in = conn.getInputStream();
-			(new StreamPump(in, out)).run();
+			this.__proc_conn(conn, null, out);
 			this.__close_conn(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -183,12 +185,12 @@ public class XGITPRequestImpl implements XGITPRequest {
 
 	@Override
 	public XGITPResponse discovery() {
+		String method = Const.XGITP.method_disc;
 		HttpURLConnection conn = null;
 		Exception ee = null;
 		try {
-			String method = Const.XGITP.method_disc;
 			conn = this.__open_conn(method);
-			this.__proc_response(conn);
+			this.__proc_conn(conn, null, null);
 			this.__close_conn(conn);
 		} catch (Exception e) {
 			e.printStackTrace();

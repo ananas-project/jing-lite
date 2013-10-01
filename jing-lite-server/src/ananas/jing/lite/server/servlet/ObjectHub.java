@@ -75,10 +75,22 @@ public class ObjectHub extends HttpServlet {
 		} else if (method.equals(Const.XGITP.method_head)) {
 			this.__do_xgitp_head(request, response);
 
+		} else if (method.equals(Const.XGITP.method_disc)) {
+			this.__do_xgitp_disc(request, response);
+
 		} else {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 
+	}
+
+	private void __do_xgitp_disc(HttpServletRequest request,
+			HttpServletResponse response) {
+
+		String base = ServletUtil.getBaseURL(request);
+		response.setHeader(Const.XGITP.endpoint, base
+				+ ServletConst.path_object_hub);
+		response.setStatus(HttpServletResponse.SC_OK);
 	}
 
 	private void __do_xgitp_head(HttpServletRequest request,

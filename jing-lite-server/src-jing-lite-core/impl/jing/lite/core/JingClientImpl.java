@@ -2,22 +2,20 @@ package impl.jing.lite.core;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 
 import ananas.jing.lite.core.Const;
 import ananas.jing.lite.core.JingRepo;
+import ananas.jing.lite.core.JingSMSHandler;
 import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.RemoteXGitObject;
 import ananas.jing.lite.core.client.JingClient;
+import ananas.jing.lite.core.client.JingMessageManager;
 import ananas.jing.lite.core.xgitp.XGITPContext;
 import ananas.jing.lite.core.xgitp.XGITPRequest;
 import ananas.jing.lite.core.xgitp.XGITPRequestFactory;
@@ -28,6 +26,8 @@ public class JingClientImpl implements JingClient {
 	private final JingRepo _repo;
 	private final String _url;
 	private XGITPContext _master_context;
+	private JingSMSHandler _jing_sms_handler;
+	private JingMessageManager _jing_sms_man;
 
 	public JingClientImpl(File repo, String url) {
 		this._repo = new DefaultJingRepo(repo);
@@ -88,7 +88,7 @@ public class JingClientImpl implements JingClient {
 			XGITPRequestFactory factory = XGITPRequestFactory.Agent
 					.getInstance();
 			XGITPRequest req = factory.request(this._url);
-			XGITPResponse resp = req.head();
+			XGITPResponse resp = req.discovery();
 			int code = resp.getResponseCode();
 			if (code != 200) {
 				String msg = resp.getResponseMessage();
@@ -262,89 +262,24 @@ public class JingClientImpl implements JingClient {
 	}
 
 	@Override
-	public void sendMessage(String to, String overview, Properties src) {
-
-		try {
-
-			final Properties dest = new Properties();
-			dest.setProperty(Const.Jing.direction, Const.Jing.direction_tx);
-			dest.setProperty(Const.Jing.text_overview, overview);
-			dest.setProperty(Const.Jing.addr_to, to);
-
-			if (src != null) {
-				Set<Object> keys = src.keySet();
-				for (Object k : keys) {
-					String key = k.toString();
-					String value = src.getProperty(key);
-					dest.setProperty(key, value);
-				}
-			}
-
-			String prefix = "jing-tx";
-			File file = this.__gen_sms_buffer_file_path(prefix);
-			OutputStream out = new FileOutputStream(file);
-			dest.store(out, file.getName());
-			out.flush();
-			out.close();
-			System.out.println("write to " + file);
-
-			this.__do_msg_rt();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public JingSMSHandler getSMSHandler() {
+		return this._jing_sms_handler;
 	}
 
 	@Override
-	public void receiveMessage(String from, String url) {
-		try {
-
-			Properties prop = new Properties();
-			prop.setProperty(Const.Jing.direction, Const.Jing.direction_rx);
-			prop.setProperty(Const.Jing.addr_from, from);
-			prop.setProperty(Const.Jing.message_url, url);
-
-			String prefix = "jing-rx";
-			File file = this.__gen_sms_buffer_file_path(prefix);
-			OutputStream out = new FileOutputStream(file);
-			prop.store(out, file.getName());
-			out.flush();
-			out.close();
-
-			this.__do_msg_rt();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private File __gen_sms_buffer_file_path(String prefix) {
-		long now = System.currentTimeMillis();
-		JingRepo repo = this.getRepo();
-		File dir = repo.getFile(JingRepo.dir_sms_buffer);
-		if (!dir.exists()) {
-			dir.mkdirs();
-		}
-		if (prefix == null) {
-			return new File(dir, "default");
-		}
-		return new File(dir, "tmp_" + prefix + now + ".properties");
+	public void setSMSHandler(JingSMSHandler h) {
+		this._jing_sms_handler = h;
 	}
 
 	@Override
-	public void sendMessage() {
-		this.__do_msg_rt();
-	}
-
-	@Override
-	public void receiveMessage() {
-		this.__do_msg_rt();
-	}
-
-	private void __do_msg_rt() {
-		JingClient client = this;
-		Runnable runn = new MessageRT(client);
-		(new Thread(runn)).start();
+	public JingMessageManager getMessageManager() {
+		JingMessageManager jmm = this._jing_sms_man;
+		if (jmm == null) {
+			JingClient client = this;
+			jmm = new JingMessageManagerImpl(client);
+			this._jing_sms_man = jmm;
+		}
+		return jmm;
 	}
 
 }
