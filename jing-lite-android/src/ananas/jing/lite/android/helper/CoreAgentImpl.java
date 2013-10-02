@@ -6,6 +6,8 @@ import java.util.Properties;
 import ananas.jing.lite.core.JingEndpointFactory;
 import ananas.jing.lite.core.JingSMSHandler;
 import ananas.jing.lite.core.client.JingClient;
+import android.os.Environment;
+import android.telephony.SmsManager;
 
 public class CoreAgentImpl implements CoreAgent {
 
@@ -27,8 +29,8 @@ public class CoreAgentImpl implements CoreAgent {
 
 	private void init() {
 
-		File dir = android.os.Environment.getExternalStorageDirectory();
-		File repo = new File(dir, "ananas/jing/lite/repo/.xgit");
+		File dir = Environment.getExternalStorageDirectory();
+		File repo = new File(dir, "boluozhai/jing/.xgit");
 		String url = "http://puyatech.com/jing/";
 
 		JingEndpointFactory factory = JingEndpointFactory.Agent.getInstance();
@@ -40,8 +42,11 @@ public class CoreAgentImpl implements CoreAgent {
 	class MySMSHandler implements JingSMSHandler {
 
 		@Override
-		public void sendSMS(String to, String msg) {
-			throw new RuntimeException("no impl");
+		public void sendSMS(String to, String text) {
+			// throw new RuntimeException("no impl");
+
+			SmsManager.getDefault().sendTextMessage(to, null, text, null, null);
+
 		}
 
 		@Override

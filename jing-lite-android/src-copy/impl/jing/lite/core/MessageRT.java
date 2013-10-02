@@ -14,6 +14,7 @@ import ananas.jing.lite.core.JingSMSHandler;
 import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.RemoteXGitObject;
 import ananas.jing.lite.core.client.JingClient;
+import ananas.jing.lite.core.util.STRunner;
 import ananas.jing.lite.core.util.StreamPump;
 import ananas.jing.lite.core.xgit.XGitCheckout;
 

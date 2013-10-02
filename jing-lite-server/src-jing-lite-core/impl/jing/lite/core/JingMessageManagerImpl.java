@@ -12,6 +12,7 @@ import ananas.jing.lite.core.JingRepo;
 import ananas.jing.lite.core.client.JingClient;
 import ananas.jing.lite.core.client.JingMessageManager;
 import ananas.jing.lite.core.client.JingMessageOverview;
+import ananas.jing.lite.core.util.STRunner;
 
 public class JingMessageManagerImpl implements JingMessageManager {
 
@@ -154,10 +155,12 @@ public class JingMessageManagerImpl implements JingMessageManager {
 		this.__do_msg_rt();
 	}
 
+	private static final STRunner _runner = STRunner.Factory.newInstance();
+
 	private void __do_msg_rt() {
 		JingClient client = _client;
 		Runnable runn = new MessageRT(client);
-		(new Thread(runn)).start();
+		_runner.add(runn);
 	}
 
 	@Override
