@@ -1,5 +1,8 @@
 package ananas.jing.lite.android;
 
+import ananas.jing.lite.android.helper.CoreAgent;
+import ananas.jing.lite.core.client.JingClient;
+import ananas.jing.lite.core.client.JingMessageManager;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -10,10 +13,14 @@ import android.widget.EditText;
 
 public class NewMessageActivity extends Activity {
 
+	private CoreAgent _agent;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_message);
+
+		this._agent = CoreAgent.Factory.newInstance();
 
 		Button btn = (Button) this.findViewById(R.id.button_send);
 		btn.setOnClickListener(new OnClickListener() {
@@ -34,7 +41,10 @@ public class NewMessageActivity extends Activity {
 		String addr = wnd_addr.getText().toString();
 		String text = wnd_content.getText().toString();
 
-		// android.widget ;
+		JingClient client = _agent.getClient();
+		JingMessageManager jmm = client.getMessageManager();
+		jmm.sendMessage(addr, text, null);
+		jmm.sendMessage();
 
 	}
 
