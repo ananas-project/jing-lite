@@ -7,6 +7,13 @@ public interface Const {
 		String direction_rx = "rx";
 		String direction_tx = "tx";
 
+		// boolean == ( 1 or 0 )
+		String status_write = "jing.status.write";
+		String status_read = "jing.status.read";
+		String status_send = "jing.status.send";
+		String status_recv = "jing.status.receive";
+		String status_duty = "jing.status.duty";
+
 		// from-to
 		String direction = "jing.direction";
 		String tx_addr = "jing.tx.addr";
