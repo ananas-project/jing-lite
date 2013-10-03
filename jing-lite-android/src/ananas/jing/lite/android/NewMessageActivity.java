@@ -1,9 +1,8 @@
 package ananas.jing.lite.android;
 
-import ananas.jing.lite.android.helper.CoreAgent;
+import ananas.jing.lite.android.helper.JingAndroidClient;
 import ananas.jing.lite.core.client.JingClient;
 import ananas.jing.lite.core.client.JingMessageManager;
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
@@ -11,16 +10,12 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class NewMessageActivity extends Activity {
-
-	private CoreAgent _agent;
+public class NewMessageActivity extends JingActivityBase {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_message);
-
-		this._agent = CoreAgent.Factory.newInstance();
 
 		Button btn = (Button) this.findViewById(R.id.button_send);
 		btn.setOnClickListener(new OnClickListener() {
@@ -41,10 +36,11 @@ public class NewMessageActivity extends Activity {
 		String addr = wnd_addr.getText().toString();
 		String text = wnd_content.getText().toString();
 
-		JingClient client = _agent.getClient();
+		JingClient client = this.getClient();
 		JingMessageManager jmm = client.getMessageManager();
 		jmm.sendMessage(addr, text, null);
-		jmm.sendMessage();
+
+		this.getJingAndroidClient().getServiceBinder().fire();
 
 	}
 
@@ -53,6 +49,13 @@ public class NewMessageActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+
+	@Override
+	protected void onServiceStatusChanged(JingAndroidClient jac,
+			String newStatus) {
+		// TODO Auto-generated method stub
+
 	}
 
 }
