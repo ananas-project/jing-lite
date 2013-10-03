@@ -14,7 +14,6 @@ import ananas.jing.lite.core.JingSMSHandler;
 import ananas.jing.lite.core.LocalXGitObject;
 import ananas.jing.lite.core.RemoteXGitObject;
 import ananas.jing.lite.core.client.JingClient;
-import ananas.jing.lite.core.util.STRunner;
 import ananas.jing.lite.core.util.StreamPump;
 import ananas.jing.lite.core.xgit.XGitCheckout;
 
@@ -90,7 +89,7 @@ public class MessageRT implements Runnable {
 
 			final String sha1 = res.getSha1();
 			final File file_detail = this.__get_detail_file(sha1);
-			final File file_overview = this.__get_overview_file(sha1);
+			final File file_overview = this.__get_overview_file(sha1, "rx");
 
 			File dir = file_detail.getParentFile();
 			if (!dir.exists()) {
@@ -136,6 +135,10 @@ public class MessageRT implements Runnable {
 	}
 
 	private void __save_prop(Properties prop, File file) throws IOException {
+		File dir = file.getParentFile();
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
 		OutputStream out = new FileOutputStream(file);
 		prop.store(out, file.getName());
 		out.close();
@@ -147,9 +150,9 @@ public class MessageRT implements Runnable {
 		in.close();
 	}
 
-	private File __get_overview_file(String sha1) {
-		File dir = _repo.getFile(JingRepo.dir_sms);
-		return new File(dir, sha1 + ".txt");
+	private File __get_overview_file(String sha1, String suffix) {
+		File dir = _repo.getFile(JingRepo.dir_sms_overview);
+		return new File(dir, sha1 + "." + suffix + ".txt");
 	}
 
 	private File __get_detail_file(String sha1) {
@@ -185,7 +188,7 @@ public class MessageRT implements Runnable {
 		final String sha1 = sr1.getXGitObject().getSha1();
 
 		final File detail_file = this.__get_detail_file(sha1);
-		final File over_file = this.__get_overview_file(sha1);
+		final File over_file = this.__get_overview_file(sha1, "tx");
 
 		// make detail
 		_repo.getApiL().checkout(sr1.getXGitObject(), detail_file);

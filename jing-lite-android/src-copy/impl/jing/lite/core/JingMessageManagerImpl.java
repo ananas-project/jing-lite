@@ -165,8 +165,8 @@ public class JingMessageManagerImpl implements JingMessageManager {
 
 	@Override
 	public List<JingMessageOverview> listAll() {
-		// TODO Auto-generated method stub
-		return null;
+		JingClient client = this._client;
+		return new JingMessageOverviewList(client);
 	}
 
 }

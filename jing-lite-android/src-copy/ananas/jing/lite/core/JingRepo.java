@@ -6,7 +6,7 @@ public interface JingRepo extends XGitRepo {
 
 	String dir_temp = "xgit/temp";
 
-	String dir_sms = "xgit/sms";
+	String dir_sms_overview = "xgit/sms/overview";
 	String dir_sms_task = "xgit/sms/buffer";
 	String dir_sms_remote = "xgit/sms/objects";
 
