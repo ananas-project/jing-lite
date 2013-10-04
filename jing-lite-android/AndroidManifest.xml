@@ -37,6 +37,7 @@
         </receiver>
         <service android:name="JingAndroidService"></service>
         <activity android:name="MessageListActivity"></activity>
+        <activity android:name="TaskRunningActivity"></activity>
     </application>
 
 </manifest>

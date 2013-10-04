@@ -3,6 +3,7 @@ package ananas.jing.lite.android;
 import ananas.jing.lite.android.helper.JingAndroidClient;
 import ananas.jing.lite.core.client.JingClient;
 import ananas.jing.lite.core.client.JingMessageManager;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
@@ -40,7 +41,7 @@ public class NewMessageActivity extends JingActivityBase {
 		JingMessageManager jmm = client.getMessageManager();
 		jmm.sendMessage(addr, text, null);
 
-		this.getJingAndroidClient().getServiceBinder().fire();
+		this.startActivity(new Intent(this, TaskRunningActivity.class));
 
 	}
 
