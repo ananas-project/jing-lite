@@ -55,10 +55,21 @@ public class ObjectL extends HttpServlet {
 		String url = request.getRequestURL().toString();
 		int index = url.lastIndexOf(kw);
 		String base_url = url.substring(0, index);
+		String sha1 = this.__get_sha1(request);
 
 		response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
-		response.setHeader("Location", base_url + ServletConst.path_object_html);
+		response.setHeader("Location", base_url + ServletConst.path_object_html
+				+ "?k=" + sha1);
 
+	}
+
+	private String __get_sha1(HttpServletRequest request) {
+
+		String uri = request.getRequestURI();
+		// System.out.print(" head of long-object-url : " + uri);
+		int index = uri.lastIndexOf('/');
+		String sha1 = uri.substring(index + 1);
+		return sha1;
 	}
 
 	private void __do_xgitp_head(HttpServletRequest request,

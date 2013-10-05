@@ -1,6 +1,68 @@
 <html>
+<head>
 
-<body>
-	<p>this is a ObjectL</p>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<script>
+	function get_sha1() {
+		var url = document.URL;
+		var k = "?k=";
+		var i = url.indexOf("?k=", 0);
+		return url.substring(i + k.length, url.length);
+	}
+
+	function on_http_result(code, msg, text) {
+		switch (code) {
+		case 200: {
+			//	var json = eval('(' + text + ')');
+			var out = document.getElementById("out_code");
+			out.innerHTML = text; //json.toString();
+			break;
+		}
+		default:
+			var out = document.getElementById("out_code");
+			out.innerHTML = "HTTP " + code + " " + msg;
+			break;
+		}
+	}
+
+	function load_json_data() {
+		var url = "ObjectJSON?k=" + get_sha1();
+		var http = new XMLHttpRequest();
+		http.open("GET", url, true);
+		{
+			//		http.readyState;
+			//	http.status
+			//			http.responseText ;
+		}
+		http.onreadystatechange = function(event) {
+			var http = event.target;
+			if (http.readyState == 4) {
+				//		alert("status = " + http.status);
+				on_http_result(http.status, http.statusText, http.responseText);
+			}
+		};
+		http.send("");
+		return url;
+	}
+
+	function on_load() {
+		var url = load_json_data();
+		var out = document.getElementById("out_url");
+		//	out.innerHTML = url;
+	}
+</script>
+</head>
+<body onload="on_load()">
+	<p>~Jing!</p>
+
+	<div>
+		<div id="out_url"></div>
+		<div id="out_code"></div>
+	</div>
+	<p>
+		<a href="http://puyatech.com/jing/download.html">下载 ~Jing! 客户端</a>
+	</p>
+
 </body>
 </html>
