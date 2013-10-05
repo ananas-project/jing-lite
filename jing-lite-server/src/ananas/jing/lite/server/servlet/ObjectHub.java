@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +21,7 @@ import ananas.jing.lite.server.ServerAgent;
 /**
  * Servlet implementation class ObjectHub
  */
+@WebServlet("/ObjectHub")
 public class ObjectHub extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private final JingServer _server;
