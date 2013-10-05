@@ -18,6 +18,7 @@ public class MainActivity extends JingActivityBase {
 		this.__setup_button_listener(R.id.new_message);
 		this.__setup_button_listener(R.id.list_message);
 
+		this.startActivity(new Intent(this, MessageListActivity.class));
 	}
 
 	private void __setup_button_listener(int id) {

@@ -17,4 +17,8 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 
+    <color name="button_text_color">#ffffff</color>
+    <color name="bar_color">#159951</color>
+    <color name="title_bar_color">#123321</color>
+
 </resources>

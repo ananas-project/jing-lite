@@ -6,23 +6,42 @@
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="60dp"
-        android:background="#d0d0d0" >
+        android:layout_height="@dimen/title_bar_height"
+        android:background="#123321" >
+
+        <ImageButton
+            android:id="@+id/imageButton1"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:background="#00000000"
+            android:contentDescription="@string/jing"
+            android:src="@drawable/ic_launcher" />
 
         <TextView
             android:id="@+id/textView1"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="@dimen/comp_gap_horz"
+            android:layout_marginRight="@dimen/comp_gap_horz"
             android:layout_weight="1.0"
-            android:text="Message" />
+            android:gravity="center_vertical"
+            android:text="@string/messaging"
+            android:textSize="@dimen/font_size_h1" />
 
         <Button
-            android:id="@+id/button_send"
+            android:id="@+id/button_add_new"
             android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="+" />
+            android:layout_height="fill_parent"
+            android:background="#00000000"
+            android:text="@string/add_plus"
+            android:textColor="@color/button_text_color"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="5dp"
+        android:background="#159951" >
     </LinearLayout>
 
     <ListView

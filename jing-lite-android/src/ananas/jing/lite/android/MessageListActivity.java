@@ -4,9 +4,14 @@ import java.util.List;
 
 import ananas.jing.lite.android.helper.JingAndroidClient;
 import ananas.jing.lite.core.client.JingMessageOverview;
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 
 public class MessageListActivity extends JingActivityBase {
@@ -21,6 +26,35 @@ public class MessageListActivity extends JingActivityBase {
 		this._list = (ListView) this.findViewById(R.id.message_list);
 		this.__update_list();
 
+		this.__setup_button_listener(R.id.button_add_new);
+
+	}
+
+	private void __setup_button_listener(int id) {
+		Button btn = (Button) this.findViewById(id);
+		btn.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				int id = view.getId();
+				MessageListActivity.this.__onClickButton(id);
+			}
+		});
+	}
+
+	protected void __onClickButton(int id) {
+		switch (id) {
+		case R.id.button_add_new: {
+			this.startActivity(new Intent(this, NewMessageActivity.class));
+			break;
+		}
+		default:
+		}
+	}
+
+	@Override
+	public void onBackPressed() {
+		// super.onBackPressed();
+		super.finishActivity(Activity.RESULT_OK);
 	}
 
 	class MyItemWrapper {

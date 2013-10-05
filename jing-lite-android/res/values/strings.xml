@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">jing-lite-android</string>
+    <string name="app_name">~惊呆了!</string>
+    <string name="jing">惊</string>
+    <string name="add_plus">+</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-    <string name="to">To</string>
-    <string name="send">Send</string>
-    
+    <string name="to">致</string>
+    <string name="send">发送</string>
+    <string name="messaging">消息</string>
+    <string name="select_a_contact">选择一个联系人 ...</string>
+    <string name="input_text_detail">在此输入内容</string>
+
 </resources>
