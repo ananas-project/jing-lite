@@ -79,8 +79,13 @@ public class ObjectJSON extends HttpServlet {
 				if (index > 0)
 					out.println(",");
 				index++;
-				String key = ServletUtil.toJSONString(k.toString());
-				String value = ServletUtil.toJSONString(prop.getProperty(key));
+
+				String key = k.toString();
+				String value = prop.getProperty(key);
+
+				key = ServletUtil.toJSONString(key);
+				value = ServletUtil.toJSONString(value);
+
 				out.print(key + ":" + value);
 			}
 			out.println("}");
