@@ -3,6 +3,17 @@
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<style type="text/css">
+.field_key {
+	font-size: 30px;
+	font-weight: bold;
+}
+
+.field_value {
+	font-size: 18px;
+}
+</style>
+
 <script>
 	function get_sha1() {
 		var url = document.URL;
@@ -14,9 +25,32 @@
 	function on_http_result(code, msg, text) {
 		switch (code) {
 		case 200: {
-			//	var json = eval('(' + text + ')');
-			var out = document.getElementById("out_code");
-			out.innerHTML = text; //json.toString();
+			var json = eval('(' + text + ')');
+			var temp_row = document.getElementById("row_temp");
+			var temp_k = document.getElementById("key_temp");
+			var temp_v = document.getElementById("value_temp");
+			var table = document.getElementById("table");
+			temp_row.style.display = "none";
+			table.innerHTML = "";
+			for ( var key in json) {
+				var value = json[key];
+				//		alert(key + " = " + value);
+
+				var row = temp_row.cloneNode(false);
+				var k = temp_k.cloneNode(true);
+				var v = temp_v.cloneNode(true);
+
+				row.innerHTML = "";
+				k.innerHTML = key;
+				v.innerHTML = value + "";
+
+				row.appendChild(k);
+				row.appendChild(v);
+
+				row.style.display = "block";
+				table.appendChild(row);
+
+			}
 			break;
 		}
 		default:
@@ -54,15 +88,27 @@
 </script>
 </head>
 <body onload="on_load()">
-	<p>~Jing!</p>
+	<h1>
+		<p>~Jing!</p>
+	</h1>
 
 	<div>
 		<div id="out_url"></div>
 		<div id="out_code"></div>
 	</div>
 	<p>
-		<a href="http://puyatech.com/jing/download.html">下载 ~Jing! 客户端</a>
+		<a href="http://puyatech.com/jing/download/">下载 ~Jing! 客户端</a>
 	</p>
+
+	<div id='table_temp'>
+		<div id='row_temp'>
+			<div id='key_temp' class='field_key'>key</div>
+			<div id='value_temp' class='field_value'>value</div>
+		</div>
+
+	</div>
+
+	<div id='table'></div>
 
 </body>
 </html>

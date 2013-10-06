@@ -59,4 +59,52 @@ public class ServletUtil {
 
 	}
 
+	public static String toJSONString(String string) {
+		if (string == null)
+			return null;
+		char[] chs = string.toCharArray();
+		StringBuilder sb = new StringBuilder();
+		sb.append('"');
+		for (char ch : chs) {
+			final char ch2;
+			switch (ch) {
+			case '"':
+				ch2 = '"';
+				break;
+			case '\\':
+				ch2 = '\\';
+				break;
+			case '/':
+				ch2 = '/';
+				break;
+			case '\b':
+				ch2 = 'b';
+				break;
+			case '\f':
+				ch2 = 'f';
+				break;
+			case '\n':
+				ch2 = 'n';
+				break;
+			case '\r':
+				ch2 = 'r';
+				break;
+			case '\t':
+				ch2 = 't';
+				break;
+			default:
+				ch2 = 0;
+				break;
+			}
+			if (ch2 == 0) {
+				sb.append(ch);
+			} else {
+				sb.append('\\');
+				sb.append(ch2);
+			}
+		}
+		sb.append('"');
+		return sb.toString();
+	}
+
 }
