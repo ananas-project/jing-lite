@@ -3,36 +3,49 @@
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<meta content='width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;' name='viewport' />
+<meta name="viewport" content="width=device-width" />
+
 <style type="text/css">
 body {
+	background-color: #505050;
+}
+
+img#icon {
+	width: 20mm;
+	height: 20mm;
+}
+
+div.page {
 	background-color: #f0f0f0;
 }
 
 div.head {
-	font-size: 40px;
+	font-size: 20mm;
 	font-weight: bold;
 	color: #159951;
 }
 
 div.field_key {
-	font-size: 30px;
+	font-size: 12mm;
 	font-weight: bold;
-	padding: 5px;
+	padding: 5mm;
 	color: #f0f0f0;
 	width: auto;
 	background-color: #159951;
 }
 
 div.field_value {
-	font-size: 24px;
+	font-size: 10mm;
 	color: #303030;
-	margin: 20px;
+	margin: 10mm;
 }
 
-div#download {
+div.download {
 	color: #ff0000;
 	width: auto;
-	margin: 20px;
+	font-size: 5mm;
+	margin: 8mm;
 	text-align: center;
 	/*	background-color: #ff0000;*/
 }
@@ -40,12 +53,11 @@ div#download {
 div.foot {
 	color: #c0c0c0;
 	width: auto;
+	font-size: 5mm;
 	height: auto;
-	padding: 40px;
+	padding: 10mm;
 	text-align: center;
-	background-color: #505050;
-
-
+	/*	background-color: #505050; */
 }
 </style>
 
@@ -146,7 +158,7 @@ div.foot {
 
 	<div class='page'>
 		<div class='head'>
-			<img src='image/icon.png' /> ~Jing!
+			<img id='icon' src='image/icon.png' /> ~Jing!
 		</div>
 
 		<div>
@@ -154,23 +166,23 @@ div.foot {
 			<div id="out_code"></div>
 		</div>
 
-		<div id='download'>
+		<div class='download'>
 			你的盆友
 			<div></div>
 			给你发了一个震惊的消息，快来看看吧！ :-P
 		</div>
 
-		<div id='download'>
+		<div class='download'>
 			<a href="http://puyatech.com/jing/download/">下载 ~Jing! 客户端</a>
 		</div>
 
 
 		<div id='table'></div>
 
-		<div class='foot'>
-			(C)2013 菠萝斋 - <a href='about.html'>关于</a>
-		</div>
 
+	</div>
+	<div class='foot'>
+		(C)2013 菠萝斋 - <a href='about.html'>关于</a>
 	</div>
 
 	<div id='table_temp'>
