@@ -4,13 +4,48 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 <style type="text/css">
-.field_key {
-	font-size: 30px;
-	font-weight: bold;
+body {
+	background-color: #f0f0f0;
 }
 
-.field_value {
-	font-size: 18px;
+div.head {
+	font-size: 40px;
+	font-weight: bold;
+	color: #159951;
+}
+
+div.field_key {
+	font-size: 30px;
+	font-weight: bold;
+	padding: 5px;
+	color: #f0f0f0;
+	width: auto;
+	background-color: #159951;
+}
+
+div.field_value {
+	font-size: 24px;
+	color: #303030;
+	margin: 20px;
+}
+
+div#download {
+	color: #ff0000;
+	width: auto;
+	margin: 20px;
+	text-align: center;
+	/*	background-color: #ff0000;*/
+}
+
+div.foot {
+	color: #c0c0c0;
+	width: auto;
+	height: auto;
+	padding: 40px;
+	text-align: center;
+	background-color: #505050;
+
+
 }
 </style>
 
@@ -20,6 +55,26 @@
 		var k = "?k=";
 		var i = url.indexOf("?k=", 0);
 		return url.substring(i + k.length, url.length);
+	}
+
+	var _human_text;
+
+	function get_human_text(key) {
+		var map = _human_text;
+		if (map == null) {
+			map = new Object();
+			{
+				map["jing.tx.time"] = "发送时间";
+				map["jing.rx.time"] = "接收时间";
+				map["jing.text.overview"] = "摘要";
+				map["jing.text.detail"] = "具体内容";
+			}
+			_human_text = map;
+		}
+		var v = map[key];
+		if (v == null)
+			v = key;
+		return v;
 	}
 
 	function on_http_result(code, msg, text) {
@@ -41,7 +96,7 @@
 				var v = temp_v.cloneNode(true);
 
 				row.innerHTML = "";
-				k.innerHTML = key;
+				k.innerHTML = get_human_text(key);
 				v.innerHTML = value + "";
 
 				row.appendChild(k);
@@ -88,17 +143,35 @@
 </script>
 </head>
 <body onload="on_load()">
-	<h1>
-		<p>~Jing!</p>
-	</h1>
 
-	<div>
-		<div id="out_url"></div>
-		<div id="out_code"></div>
+	<div class='page'>
+		<div class='head'>
+			<img src='image/icon.png' /> ~Jing!
+		</div>
+
+		<div>
+			<div id="out_url"></div>
+			<div id="out_code"></div>
+		</div>
+
+		<div id='download'>
+			你的盆友
+			<div></div>
+			给你发了一个震惊的消息，快来看看吧！ :-P
+		</div>
+
+		<div id='download'>
+			<a href="http://puyatech.com/jing/download/">下载 ~Jing! 客户端</a>
+		</div>
+
+
+		<div id='table'></div>
+
+		<div class='foot'>
+			(C)2013 菠萝斋 - <a href='about.html'>关于</a>
+		</div>
+
 	</div>
-	<p>
-		<a href="http://puyatech.com/jing/download/">下载 ~Jing! 客户端</a>
-	</p>
 
 	<div id='table_temp'>
 		<div id='row_temp'>
@@ -108,7 +181,6 @@
 
 	</div>
 
-	<div id='table'></div>
 
 </body>
 </html>

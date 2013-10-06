@@ -49,7 +49,6 @@ public class ObjectJSON extends HttpServlet {
 			sha1 = query.substring(index + k.length());
 		}
 
-		ServletOutputStream out = response.getOutputStream();
 		// out.println("query = " + query);
 		// out.println(" sha1 = " + sha1);
 
@@ -74,10 +73,11 @@ public class ObjectJSON extends HttpServlet {
 			response.setStatus(HttpServletResponse.SC_OK);
 			Set<Object> keys = prop.keySet();
 			int index = 0;
-			out.println("{");
+			StringBuilder sb = new StringBuilder();
+			sb.append("{");
 			for (Object k : keys) {
 				if (index > 0)
-					out.println(",");
+					sb.append(",");
 				index++;
 
 				String key = k.toString();
@@ -86,9 +86,13 @@ public class ObjectJSON extends HttpServlet {
 				key = ServletUtil.toJSONString(key);
 				value = ServletUtil.toJSONString(value);
 
-				out.print(key + ":" + value);
+				sb.append(key + ":" + value);
+
 			}
-			out.println("}");
+			sb.append("}");
+
+			ServletOutputStream out = response.getOutputStream();
+			out.write(sb.toString().getBytes("UTF-8"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
